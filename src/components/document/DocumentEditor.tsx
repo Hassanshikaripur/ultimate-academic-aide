@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,54 +29,91 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateAIContent, createInsightFromAI, AIPromptType } from "@/utils/geminiAI";
+import { supabase } from "@/integrations/supabase/client";
 
-export function DocumentEditor() {
+interface InsightProps {
+  id: string;
+  title: string;
+  text: string;
+  source: string;
+  relevance: number;
+}
+
+interface DocumentEditorProps {
+  initialTitle: string;
+  initialContent: string;
+  onSave: (title: string, content: string) => Promise<void>;
+  onSaveInsight?: (insightData: {
+    title: string;
+    text: string;
+    source: string;
+    relevance: number;
+  }) => Promise<void>;
+  documentId?: string;
+}
+
+export function DocumentEditor({
+  initialTitle,
+  initialContent,
+  onSave,
+  onSaveInsight,
+  documentId,
+}: DocumentEditorProps) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
-  const [documentTitle, setDocumentTitle] = useState("Literature Review: Neural Networks in Computer Vision");
-  const [content, setContent] = useState(`# Introduction to Neural Networks in Computer Vision
-
-Computer vision has been revolutionized by deep learning approaches, particularly convolutional neural networks (CNNs). This literature review examines the progression of neural network architectures in computer vision tasks over the past decade.
-
-## Background
-
-Early approaches to computer vision relied on hand-crafted features and traditional machine learning algorithms. The introduction of AlexNet in 2012 marked a significant shift towards deep learning approaches, demonstrating substantial improvements in image classification performance on the ImageNet dataset.
-
-## Current State of the Art
-
-Recent architectures such as Vision Transformers (ViT) and MLP-Mixers have challenged the CNN paradigm by adapting transformer architectures from natural language processing to vision tasks. These approaches often eliminate convolutions entirely, relying instead on self-attention mechanisms or token mixing operations.
-
-### Key Advantages
-
-- Improved performance on benchmark datasets
-- Better handling of global dependencies in images
-- More efficient training on large datasets
-
-## Research Gaps
-
-Despite significant progress, several challenges remain:
-
-1. Efficiency concerns for deployment on edge devices
-2. Interpretability of complex models
-3. Data efficiency for specialized domains
-4. Robustness to adversarial attacks
-
-## Proposed Research Direction
-
-This project will focus on developing hybrid architectures that combine the strengths of CNNs and transformer-based approaches, with particular emphasis on medical imaging applications where data scarcity is a common challenge.`);
-
-  const [insights, setInsights] = useState([]);
+  const [documentTitle, setDocumentTitle] = useState(initialTitle);
+  const [content, setContent] = useState(initialContent);
+  const [insights, setInsights] = useState<InsightProps[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+
+  // Load saved insights if there's a document ID
+  useEffect(() => {
+    async function loadInsights() {
+      if (!documentId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("insights")
+          .select("*")
+          .eq("document_id", documentId)
+          .order("created_at", { ascending: false });
+          
+        if (error) {
+          throw error;
+        }
+        
+        if (data && data.length > 0) {
+          setInsights(data);
+        }
+      } catch (error) {
+        console.error("Error loading insights:", error);
+      }
+    }
+    
+    loadInsights();
+  }, [documentId]);
 
   const handleToolClick = (tool: string) => {
     setActiveTool(tool === activeTool ? null : tool);
   };
 
-  const handleSave = () => {
-    toast({
-      title: "Document saved",
-      description: "Your document has been saved successfully.",
-    });
+  const handleSave = async () => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    try {
+      await onSave(documentTitle, content);
+    } catch (error) {
+      console.error("Error in save handler:", error);
+      toast({
+        title: "Save failed",
+        description: "There was an error saving your document.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAIAnalyze = async (promptType: AIPromptType = 'analyze') => {
@@ -101,6 +138,17 @@ This project will focus on developing hybrid architectures that combine the stre
       }
       
       const newInsight = createInsightFromAI(response.text, promptType);
+      
+      // Save insight to database if document has been saved
+      if (documentId && onSaveInsight) {
+        await onSaveInsight({
+          title: newInsight.title,
+          text: newInsight.text,
+          source: newInsight.source,
+          relevance: newInsight.relevance,
+        });
+      }
+      
       setInsights(prev => [newInsight, ...prev]);
       
       toast({
@@ -280,9 +328,10 @@ This project will focus on developing hybrid architectures that combine the stre
                 size="sm"
                 className="gap-1"
                 onClick={handleSave}
+                disabled={isSaving}
               >
                 <Save className="h-4 w-4" />
-                Save
+                {isSaving ? "Saving..." : "Save"}
               </Button>
               
               <DropdownMenu>

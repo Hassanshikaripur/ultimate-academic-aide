@@ -1,7 +1,7 @@
 
 import { DocumentGrid } from "@/components/dashboard/DocumentGrid";
-import AppHeader from "@/components/layout/AppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
+import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 
 const Index = () => {
   return (
@@ -9,7 +9,7 @@ const Index = () => {
       <AppSidebar />
       
       <div className="flex-1 ml-0 md:ml-64">
-        <AppHeader />
+        <CustomAppHeader />
         <main className="container mx-auto py-6 px-4">
           <DocumentGrid />
         </main>

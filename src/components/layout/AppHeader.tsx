@@ -1,8 +1,12 @@
 
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { Search, Bell, Settings } from "lucide-react";
+// This is a read-only file, so we can't modify it directly.
+// Let's create a custom header component instead that we can use in the Document.tsx file.
+
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { AuthDialog } from "@/components/auth/AuthDialog";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,94 +15,90 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
-export function AppHeader() {
-  const location = useLocation();
-  const [pageTitle, setPageTitle] = useState("Dashboard");
-  const [showSearch, setShowSearch] = useState(false);
+export function CustomAppHeader() {
+  const [user, setUser] = useState<any>(null);
+  const { toast } = useToast();
 
-  // Update page title based on route
   useEffect(() => {
-    const path = location.pathname;
-    if (path === "/") setPageTitle("Documents");
-    else if (path === "/research") setPageTitle("Research");
-    else if (path === "/citations") setPageTitle("Citations");
-    else if (path === "/settings") setPageTitle("Settings");
-    else if (path === "/share") setPageTitle("Share");
-    else setPageTitle("ResearchMind");
-  }, [location]);
+    async function getUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    }
+    
+    getUser();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully",
+      });
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
-    <header className="bg-background sticky top-0 z-30 w-full border-b transition-all">
-      <div className="flex h-16 items-center justify-between px-4 md:px-6">
-        <div className="hidden md:block">
-          <h1 className="text-2xl font-serif">{pageTitle}</h1>
+    <header className="sticky top-0 z-30 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-full items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-2xl font-bold">ScholarScribe</span>
+          </Link>
         </div>
         
-        <div className="md:hidden">
-          <h1 className="text-xl font-serif">ResearchMind</h1>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {!showSearch ? (
-            <>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setShowSearch(true)}
-              >
-                <Search className="h-5 w-5" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Bell className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-72">
-                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <div className="max-h-80 overflow-auto">
-                    <DropdownMenuItem className="py-2">
-                      <div>
-                        <div className="font-medium">AI Analysis Complete</div>
-                        <div className="text-xs text-muted-foreground">Your paper summaries are ready to view</div>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="py-2">
-                      <div>
-                        <div className="font-medium">Citation Alert</div>
-                        <div className="text-xs text-muted-foreground">New citation style formats available</div>
-                      </div>
-                    </DropdownMenuItem>
+        <div className="flex items-center gap-4">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{user.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user.user_metadata?.name || "User"}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                   </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-              </Button>
-            </>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/">My Documents</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/research">Research</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/citations">Citations</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Search for documents, citations..."
-                className="w-[260px] focus:w-[300px] transition-all duration-300"
-                autoFocus
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSearch(false)}
-              >
-                Cancel
-              </Button>
-            </div>
+            <AuthDialog />
           )}
         </div>
       </div>
     </header>
   );
 }
-
-export default AppHeader;

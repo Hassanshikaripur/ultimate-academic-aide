@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Search, Zap, X } from "lucide-react";
@@ -13,52 +13,19 @@ export interface InsightProps {
   relevance: number;
 }
 
-const sampleInsights: InsightProps[] = [
-  {
-    id: "insight1",
-    title: "Connection to Recent Research",
-    text: "This section appears to relate strongly to Zhang et al. (2023). Consider adding their findings on transfer learning to strengthen your argument.",
-    source: "AI Analysis",
-    relevance: 95,
-  },
-  {
-    id: "insight2",
-    title: "Missing Citation",
-    text: "The methodology described here is similar to Li & Wang (2022). Consider citing their paper for additional support.",
-    source: "Citation Analysis",
-    relevance: 85,
-  },
-  {
-    id: "insight3",
-    title: "Terminology Clarification",
-    text: "The use of 'neural architecture' here could be more precise. In recent literature, this typically refers to the specific layers and connections, not the overall approach.",
-    source: "Text Analysis",
-    relevance: 78,
-  },
-];
-
 interface AIInsightsPanelProps {
   insights?: InsightProps[];
+  onClearInsights?: () => void;
+  onApplyInsight?: (insight: InsightProps) => void;
 }
 
-export function AIInsightsPanel({ insights = [] }: AIInsightsPanelProps) {
-  const [allInsights, setAllInsights] = useState<InsightProps[]>([
-    ...(insights.length > 0 ? insights : sampleInsights)
-  ]);
+export function AIInsightsPanel({ 
+  insights = [], 
+  onClearInsights,
+  onApplyInsight
+}: AIInsightsPanelProps) {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [activeInsight, setActiveInsight] = useState<string | null>(null);
-
-  // Update insights when props change
-  useEffect(() => {
-    if (insights.length > 0) {
-      setAllInsights(prevInsights => {
-        // Filter out duplicate insights by id
-        const existingIds = new Set(prevInsights.map(insight => insight.id));
-        const newInsights = insights.filter(insight => !existingIds.has(insight.id));
-        return [...newInsights, ...prevInsights];
-      });
-    }
-  }, [insights]);
 
   const togglePanel = () => {
     setIsPanelOpen(!isPanelOpen);
@@ -88,13 +55,13 @@ export function AIInsightsPanel({ insights = [] }: AIInsightsPanelProps) {
           </div>
 
           <div className="flex-grow overflow-y-auto p-4 space-y-4">
-            {allInsights.length === 0 ? (
+            {insights.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                 <Zap size={24} className="mb-2" />
                 <p>No insights yet. Use the AI Tools button to generate insights.</p>
               </div>
             ) : (
-              allInsights.map((insight) => (
+              insights.map((insight) => (
                 <div
                   key={insight.id}
                   className={cn(
@@ -126,7 +93,12 @@ export function AIInsightsPanel({ insights = [] }: AIInsightsPanelProps) {
                   {activeInsight === insight.id && (
                     <div className="flex justify-between items-center mt-3 text-xs text-muted-foreground">
                       <span>{insight.source}</span>
-                      <Button variant="ghost" size="sm" className="h-7 px-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 px-2"
+                        onClick={() => onApplyInsight && onApplyInsight(insight)}
+                      >
                         Apply
                       </Button>
                     </div>
@@ -136,9 +108,13 @@ export function AIInsightsPanel({ insights = [] }: AIInsightsPanelProps) {
             )}
           </div>
 
-          {allInsights.length > 0 && (
+          {insights.length > 0 && (
             <div className="p-4 border-t">
-              <Button className="w-full" variant="outline">
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={onClearInsights}
+              >
                 Clear All Insights
               </Button>
             </div>
