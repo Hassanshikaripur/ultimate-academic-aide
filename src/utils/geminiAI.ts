@@ -1,8 +1,8 @@
 
-import { GoogleGenerativeAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 const API_KEY = "AIzaSyBXT8PN6v7G62bjikvKOBZkMqMddiykpes";
-const genAI = new GoogleGenerativeAI(API_KEY);
+const genAI = new GoogleGenAI({ apiKey: API_KEY });
 
 export type AIPromptType = 'analyze' | 'summarize' | 'improve' | 'brainstorm' | 'research';
 
@@ -24,13 +24,14 @@ export async function generateAIContent(
   promptType: AIPromptType
 ): Promise<AIResponse> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    
     const prompt = promptTemplates[promptType](content);
     
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
+    const response = await genAI.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: prompt,
+    });
+    
+    const text = response.text;
     
     return { text };
   } catch (error) {
