@@ -28,6 +28,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { generateAIContent, createInsightFromAI, AIPromptType } from "@/utils/geminiAI";
 
 export function DocumentEditor() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -63,6 +64,8 @@ Despite significant progress, several challenges remain:
 
 This project will focus on developing hybrid architectures that combine the strengths of CNNs and transformer-based approaches, with particular emphasis on medical imaging applications where data scarcity is a common challenge.`);
 
+  const [insights, setInsights] = useState([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
 
   const handleToolClick = (tool: string) => {
@@ -76,11 +79,44 @@ This project will focus on developing hybrid architectures that combine the stre
     });
   };
 
-  const handleAIAnalyze = () => {
+  const handleAIAnalyze = async (promptType: AIPromptType = 'analyze') => {
+    if (isAnalyzing) return;
+    
+    setIsAnalyzing(true);
     toast({
       title: "AI Analysis started",
-      description: "The AI is now analyzing your document. Results will appear in the insights panel.",
+      description: `Gemini AI is now ${promptType}ing your document. Results will appear in the insights panel.`,
     });
+
+    try {
+      const response = await generateAIContent(content, promptType);
+      
+      if (response.error) {
+        toast({
+          title: "AI Analysis failed",
+          description: `Error: ${response.error}`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const newInsight = createInsightFromAI(response.text, promptType);
+      setInsights(prev => [newInsight, ...prev]);
+      
+      toast({
+        title: "AI Analysis complete",
+        description: `New insights have been added to the panel.`,
+      });
+    } catch (error) {
+      console.error("Error during AI analysis:", error);
+      toast({
+        title: "AI Analysis failed",
+        description: "An unexpected error occurred. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -206,15 +242,38 @@ This project will focus on developing hybrid architectures that combine the stre
             </Button>
             
             <div className="ml-auto flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1"
-                onClick={handleAIAnalyze}
-              >
-                <Zap className="h-4 w-4 text-research-600" />
-                AI Analyze
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1"
+                    disabled={isAnalyzing}
+                  >
+                    <Zap className={`h-4 w-4 ${isAnalyzing ? "animate-pulse" : ""} text-research-600`} />
+                    {isAnalyzing ? "Analyzing..." : "AI Tools"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Gemini AI Tools</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleAIAnalyze('analyze')}>
+                    Analyze Content
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAIAnalyze('summarize')}>
+                    Summarize Document
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAIAnalyze('improve')}>
+                    Suggest Improvements
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAIAnalyze('brainstorm')}>
+                    Generate Related Ideas
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAIAnalyze('research')}>
+                    Find Research Connections
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               
               <Button
                 variant="outline"
@@ -256,7 +315,7 @@ This project will focus on developing hybrid architectures that combine the stre
         />
       </div>
       
-      <AIInsightsPanel />
+      <AIInsightsPanel insights={insights} />
     </div>
   );
 }

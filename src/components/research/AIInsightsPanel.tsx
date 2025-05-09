@@ -1,11 +1,11 @@
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Search, Zap, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-interface InsightProps {
+export interface InsightProps {
   id: string;
   title: string;
   text: string;
@@ -37,10 +37,28 @@ const sampleInsights: InsightProps[] = [
   },
 ];
 
-export function AIInsightsPanel() {
-  const [insights, setInsights] = useState<InsightProps[]>(sampleInsights);
+interface AIInsightsPanelProps {
+  insights?: InsightProps[];
+}
+
+export function AIInsightsPanel({ insights = [] }: AIInsightsPanelProps) {
+  const [allInsights, setAllInsights] = useState<InsightProps[]>([
+    ...(insights.length > 0 ? insights : sampleInsights)
+  ]);
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [activeInsight, setActiveInsight] = useState<string | null>(null);
+
+  // Update insights when props change
+  useEffect(() => {
+    if (insights.length > 0) {
+      setAllInsights(prevInsights => {
+        // Filter out duplicate insights by id
+        const existingIds = new Set(prevInsights.map(insight => insight.id));
+        const newInsights = insights.filter(insight => !existingIds.has(insight.id));
+        return [...newInsights, ...prevInsights];
+      });
+    }
+  }, [insights]);
 
   const togglePanel = () => {
     setIsPanelOpen(!isPanelOpen);
@@ -70,52 +88,61 @@ export function AIInsightsPanel() {
           </div>
 
           <div className="flex-grow overflow-y-auto p-4 space-y-4">
-            {insights.map((insight) => (
-              <div
-                key={insight.id}
-                className={cn(
-                  "border rounded-lg p-3 cursor-pointer transition-all",
-                  activeInsight === insight.id
-                    ? "border-primary bg-primary/5"
-                    : "hover:border-primary/50"
-                )}
-                onClick={() => handleInsightClick(insight.id)}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <h4 className="font-medium text-sm">{insight.title}</h4>
-                  <Badge variant="outline" className="text-xs">
-                    {insight.relevance}%
-                  </Badge>
-                </div>
-
-                <p
-                  className={cn(
-                    "text-sm text-muted-foreground mt-2 transition-all",
-                    activeInsight === insight.id
-                      ? "line-clamp-none"
-                      : "line-clamp-2"
-                  )}
-                >
-                  {insight.text}
-                </p>
-
-                {activeInsight === insight.id && (
-                  <div className="flex justify-between items-center mt-3 text-xs text-muted-foreground">
-                    <span>{insight.source}</span>
-                    <Button variant="ghost" size="sm" className="h-7 px-2">
-                      Apply
-                    </Button>
-                  </div>
-                )}
+            {allInsights.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                <Zap size={24} className="mb-2" />
+                <p>No insights yet. Use the AI Tools button to generate insights.</p>
               </div>
-            ))}
+            ) : (
+              allInsights.map((insight) => (
+                <div
+                  key={insight.id}
+                  className={cn(
+                    "border rounded-lg p-3 cursor-pointer transition-all",
+                    activeInsight === insight.id
+                      ? "border-primary bg-primary/5"
+                      : "hover:border-primary/50"
+                  )}
+                  onClick={() => handleInsightClick(insight.id)}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-medium text-sm">{insight.title}</h4>
+                    <Badge variant="outline" className="text-xs">
+                      {insight.relevance}%
+                    </Badge>
+                  </div>
+
+                  <p
+                    className={cn(
+                      "text-sm text-muted-foreground mt-2 transition-all",
+                      activeInsight === insight.id
+                        ? "line-clamp-none"
+                        : "line-clamp-2"
+                    )}
+                  >
+                    {insight.text}
+                  </p>
+
+                  {activeInsight === insight.id && (
+                    <div className="flex justify-between items-center mt-3 text-xs text-muted-foreground">
+                      <span>{insight.source}</span>
+                      <Button variant="ghost" size="sm" className="h-7 px-2">
+                        Apply
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
 
-          <div className="p-4 border-t">
-            <Button className="w-full" variant="outline">
-              Generate More Insights
-            </Button>
-          </div>
+          {allInsights.length > 0 && (
+            <div className="p-4 border-t">
+              <Button className="w-full" variant="outline">
+                Clear All Insights
+              </Button>
+            </div>
+          )}
         </div>
       ) : (
         <Button
