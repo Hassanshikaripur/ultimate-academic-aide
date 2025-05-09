@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   File,
   Search,
@@ -10,11 +10,14 @@ import {
   Menu,
   X,
   Plus,
-  User
+  User,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type NavigationItem = {
   name: string;
@@ -23,7 +26,7 @@ type NavigationItem = {
 };
 
 const navigation: NavigationItem[] = [
-  { name: "Documents", href: "/", icon: File },
+  { name: "Documents", href: "/dashboard", icon: File },
   { name: "Research", href: "/research", icon: Search },
   { name: "Citations", href: "/citations", icon: Database },
   { name: "Settings", href: "/settings", icon: Settings },
@@ -34,11 +37,31 @@ export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
     if (isMobile) {
       document.body.style.overflow = !sidebarOpen ? "hidden" : "auto";
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully",
+      });
+      navigate('/');
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -74,8 +97,8 @@ export function AppSidebar() {
           {/* Logo */}
           <div className="flex items-center justify-between p-4 border-b">
             {!collapsed && (
-              <Link to="/" className="flex items-center">
-                <span className="text-xl font-serif font-bold text-primary">ResearchMind</span>
+              <Link to="/dashboard" className="flex items-center">
+                <span className="text-xl font-serif font-bold text-primary">ScholarScribe</span>
               </Link>
             )}
             
@@ -121,27 +144,54 @@ export function AppSidebar() {
                 "w-full",
                 collapsed && "px-0"
               )}
+              onClick={() => navigate('/document/new')}
             >
               <Plus size={16} className={cn(collapsed ? "mr-0" : "mr-2")} />
               {!collapsed && "New Document"}
             </Button>
           </div>
 
-          {/* User profile */}
-          <div className={cn("p-4 border-t flex", collapsed ? "justify-center" : "justify-start")}>
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-9 h-9 rounded-full bg-research-600 flex items-center justify-center text-white">
-                  <User size={18} />
+          {/* User profile and logout */}
+          <div className="p-4 border-t">
+            <div className={cn("flex", collapsed ? "justify-center" : "justify-between items-center")}>
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-research-600 flex items-center justify-center text-white">
+                    <User size={18} />
+                  </div>
                 </div>
+                {!collapsed && (
+                  <div className="ml-3">
+                    <p className="text-sm font-medium">CS Student</p>
+                    <p className="text-xs text-muted-foreground">Final Year</p>
+                  </div>
+                )}
               </div>
+              
               {!collapsed && (
-                <div className="ml-3">
-                  <p className="text-sm font-medium">CS Student</p>
-                  <p className="text-xs text-muted-foreground">Final Year</p>
-                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={handleLogout}
+                  title="Log out"
+                >
+                  <LogOut size={18} />
+                </Button>
               )}
             </div>
+            
+            {/* Show logout button when collapsed */}
+            {collapsed && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="mx-auto mt-4"
+                onClick={handleLogout}
+                title="Log out"
+              >
+                <LogOut size={18} />
+              </Button>
+            )}
           </div>
         </div>
       </div>

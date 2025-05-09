@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,15 +12,28 @@ import { useToast } from "@/hooks/use-toast";
 interface AuthDialogProps {
   children?: React.ReactNode;
   trigger?: React.ReactNode;
+  defaultTab?: "signin" | "signup";
 }
 
-export function AuthDialog({ children, trigger }: AuthDialogProps) {
+export function AuthDialog({ children, trigger, defaultTab = "signin" }: AuthDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [activeTab, setActiveTab] = useState<"signin" | "signup">(defaultTab);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // Check if trigger contains "Sign Up" text to set default tab
+  useEffect(() => {
+    if (trigger && typeof trigger === 'object' && 'props' in trigger) {
+      const triggerText = trigger.props.children;
+      if (triggerText === "Sign Up" || triggerText === "Get Started Free") {
+        setActiveTab("signup");
+      }
+    }
+  }, [trigger]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +54,7 @@ export function AuthDialog({ children, trigger }: AuthDialogProps) {
       });
       
       setOpen(false);
-      window.location.reload(); // Reload to update auth state
+      navigate('/dashboard');
     } catch (error: any) {
       toast({
         title: "Sign in failed",
@@ -75,7 +89,21 @@ export function AuthDialog({ children, trigger }: AuthDialogProps) {
         description: "Please check your email for a confirmation link",
       });
       
-      setOpen(false);
+      // Auto sign in after sign up for better UX (if email confirmation is disabled)
+      try {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (!signInError) {
+          setOpen(false);
+          navigate('/dashboard');
+        }
+      } catch (signInError) {
+        // Silent handling - if auto sign-in fails, user can still manually sign in
+      }
+      
     } catch (error: any) {
       toast({
         title: "Sign up failed",
@@ -98,10 +126,10 @@ export function AuthDialog({ children, trigger }: AuthDialogProps) {
       )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Authentication</DialogTitle>
-          <DialogDescription>Sign in or create an account to continue</DialogDescription>
+          <DialogTitle>Welcome to ScholarScribe</DialogTitle>
+          <DialogDescription>Sign in or create an account to access your research workspace</DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="signin" className="w-full">
+        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -134,6 +162,16 @@ export function AuthDialog({ children, trigger }: AuthDialogProps) {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
+              <p className="text-center text-sm text-muted-foreground">
+                Don't have an account?{" "}
+                <button 
+                  type="button"
+                  className="underline text-primary hover:text-primary/90"
+                  onClick={() => setActiveTab("signup")}
+                >
+                  Sign up
+                </button>
+              </p>
             </form>
           </TabsContent>
           
@@ -175,6 +213,16 @@ export function AuthDialog({ children, trigger }: AuthDialogProps) {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Sign Up"}
               </Button>
+              <p className="text-center text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <button 
+                  type="button"
+                  className="underline text-primary hover:text-primary/90"
+                  onClick={() => setActiveTab("signin")}
+                >
+                  Sign in
+                </button>
+              </p>
             </form>
           </TabsContent>
         </Tabs>

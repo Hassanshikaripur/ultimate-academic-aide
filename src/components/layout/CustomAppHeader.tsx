@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/auth/AuthDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,21 +18,33 @@ import { useToast } from "@/hooks/use-toast";
 export function CustomAppHeader() {
   const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+      
+      // Redirect to landing page if signed out
+      if (event === 'SIGNED_OUT') {
+        navigate('/');
+      }
+    });
+    
+    // Then check for current session
     async function getUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+      
+      if (!session?.user) {
+        navigate('/');
+      }
     }
     
     getUser();
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
-    });
-    
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -41,8 +53,14 @@ export function CustomAppHeader() {
         title: "Signed out",
         description: "You have been signed out successfully",
       });
+      navigate('/');
     } catch (error) {
       console.error("Error signing out:", error);
+      toast({
+        title: "Sign out failed",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -50,7 +68,7 @@ export function CustomAppHeader() {
     <header className="sticky top-0 z-30 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-full items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/dashboard" className="flex items-center gap-2">
             <span className="text-2xl font-bold">ScholarScribe</span>
           </Link>
         </div>
@@ -61,6 +79,7 @@ export function CustomAppHeader() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.user_metadata?.avatar_url || ""} />
                     <AvatarFallback>{user.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -74,7 +93,7 @@ export function CustomAppHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/">My Documents</Link>
+                  <Link to="/dashboard">My Documents</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/research">Research</Link>
