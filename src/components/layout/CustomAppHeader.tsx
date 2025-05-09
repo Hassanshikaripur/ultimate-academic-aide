@@ -1,7 +1,4 @@
 
-// This is a read-only file, so we can't modify it directly.
-// Let's create a custom header component instead that we can use in the Document.tsx file.
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";

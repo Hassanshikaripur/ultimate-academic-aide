@@ -1,5 +1,4 @@
-
-import AppHeader from "@/components/layout/AppHeader";
+import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,7 @@ const Share = () => {
       <AppSidebar />
       
       <div className="flex-1 ml-0 md:ml-64">
-        <AppHeader />
+        <CustomAppHeader />
         <main className="container mx-auto py-6 px-4">
           <div className="space-y-6">
             <Card>

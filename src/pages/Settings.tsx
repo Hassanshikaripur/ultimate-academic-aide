@@ -1,5 +1,4 @@
-
-import AppHeader from "@/components/layout/AppHeader";
+import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +23,7 @@ const Settings = () => {
       <AppSidebar />
       
       <div className="flex-1 ml-0 md:ml-64">
-        <AppHeader />
+        <CustomAppHeader />
         <main className="container mx-auto py-6 px-4">
           <div className="space-y-6">
             <Tabs defaultValue="general">

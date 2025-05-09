@@ -1,5 +1,5 @@
 
-import AppHeader from "@/components/layout/AppHeader";
+import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { KnowledgeGraph } from "@/components/research/KnowledgeGraph";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -11,7 +11,7 @@ const Research = () => {
       <AppSidebar />
       
       <div className="flex-1 ml-0 md:ml-64">
-        <AppHeader />
+        <CustomAppHeader />
         <main className="container mx-auto py-6 px-4">
           <Tabs defaultValue="knowledge-graph">
             <div className="flex justify-between items-center mb-6">
