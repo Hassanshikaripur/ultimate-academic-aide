@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ConnectNodes } from "lucide-react";
+import { Network } from "lucide-react";
 
 // Sample connections data
 const connectionTypes = [
@@ -209,7 +209,7 @@ export function ResearchConnections() {
                               </div>
                               
                               <div className="mx-2 flex flex-col items-center">
-                                <ConnectNodes className="h-5 w-5 text-muted-foreground" />
+                                <Network className="h-5 w-5 text-muted-foreground" />
                                 <span className="text-xs text-muted-foreground">{connection.type}</span>
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${
                                   connection.strength === "Strong" 
@@ -241,7 +241,7 @@ export function ResearchConnections() {
             ) : (
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
-                  <ConnectNodes className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                  <Network className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                   <p className="text-muted-foreground">No matching connections found</p>
                 </div>
               </div>
