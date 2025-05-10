@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,9 +167,16 @@ export function CitationManager() {
   };
 
   const handleAddCitation = (data: CitationFormValues) => {
+    // Fix: Ensure all required properties are provided
     const newCitation: Citation = {
       id: `citation-${Date.now()}`,
-      ...data,
+      title: data.title,
+      authors: data.authors,
+      year: data.year,
+      journal: data.journal,
+      doi: data.doi,
+      url: data.url,
+      abstract: data.abstract
     };
     
     setCitations((prev) => [...prev, newCitation]);

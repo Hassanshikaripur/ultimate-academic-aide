@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -157,8 +156,14 @@ export function DocumentEditor({
     }
   };
 
-  const applyAIContent = (content: string) => {
-    setAiGeneratedContent(content);
+  // Fix: Update the applyAIContent function to use the text property from InsightProps
+  const applyAIContent = (content: string | InsightProps) => {
+    if (typeof content === 'string') {
+      setAiGeneratedContent(content);
+    } else {
+      // If content is an InsightProps object, use its text property
+      setAiGeneratedContent(content.text);
+    }
   };
 
   return (
