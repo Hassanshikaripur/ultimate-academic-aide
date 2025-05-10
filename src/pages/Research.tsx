@@ -2,9 +2,8 @@
 import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { KnowledgeGraph } from "@/components/research/KnowledgeGraph";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PaperAnalysis } from "@/components/research/PaperAnalysis";
-import { ResearchConnections } from "@/components/research/ResearchConnections";
 
 const Research = () => {
   return (
@@ -28,11 +27,25 @@ const Research = () => {
             </TabsContent>
             
             <TabsContent value="paper-analysis">
-              <PaperAnalysis />
+              <Card>
+                <CardHeader>
+                  <h2 className="text-2xl font-serif">Paper Analysis</h2>
+                </CardHeader>
+                <CardContent className="flex items-center justify-center min-h-[30rem]">
+                  <p className="text-muted-foreground">Select papers to analyze with AI</p>
+                </CardContent>
+              </Card>
             </TabsContent>
             
             <TabsContent value="connections">
-              <ResearchConnections />
+              <Card>
+                <CardHeader>
+                  <h2 className="text-2xl font-serif">Research Connections</h2>
+                </CardHeader>
+                <CardContent className="flex items-center justify-center min-h-[30rem]">
+                  <p className="text-muted-foreground">AI will help you discover connections between your research documents</p>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </main>
