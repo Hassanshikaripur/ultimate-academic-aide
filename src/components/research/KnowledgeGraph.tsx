@@ -69,7 +69,7 @@ export function KnowledgeGraph() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   
-  const onConnect = useCallback((params) => {
+  const onConnect = useCallback((params: any) => {
     setEdges((eds) => addEdge({ ...params, animated: true }, eds));
   }, [setEdges]);
 

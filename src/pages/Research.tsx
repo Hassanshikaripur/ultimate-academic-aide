@@ -2,7 +2,6 @@
 import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { KnowledgeGraph } from "@/components/research/KnowledgeGraph";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaperAnalysis } from "@/components/research/PaperAnalysis";
 import { ResearchConnections } from "@/components/research/ResearchConnections";

@@ -33,14 +33,14 @@ const sampleConnections = [
   { from: "2", to: "3", type: "Citation", strength: "Strong", papers: 8 }
 ];
 
-const getResearcherById = (id) => {
+const getResearcherById = (id: string) => {
   return sampleResearchers.find(researcher => researcher.id === id);
 };
 
 export function ResearchConnections() {
-  const [filterType, setFilterType] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedConnection, setSelectedConnection] = useState(null);
+  const [filterType, setFilterType] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedConnection, setSelectedConnection] = useState<any>(null);
   
   // Filter connections based on type and search
   const filteredConnections = sampleConnections.filter(connection => {
@@ -49,7 +49,8 @@ export function ResearchConnections() {
     const fromResearcher = getResearcherById(connection.from);
     const toResearcher = getResearcherById(connection.to);
     
-    if (searchQuery && !fromResearcher.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    if (searchQuery && fromResearcher && toResearcher && 
+        !fromResearcher.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
         !toResearcher.name.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
@@ -204,8 +205,8 @@ export function ResearchConnections() {
                           <CardContent className="p-3">
                             <div className="flex items-center">
                               <div className="flex-1">
-                                <p className="font-medium">{fromResearcher.name}</p>
-                                <p className="text-sm text-muted-foreground">{fromResearcher.institution}</p>
+                                <p className="font-medium">{fromResearcher?.name}</p>
+                                <p className="text-sm text-muted-foreground">{fromResearcher?.institution}</p>
                               </div>
                               
                               <div className="mx-2 flex flex-col items-center">
@@ -223,8 +224,8 @@ export function ResearchConnections() {
                               </div>
                               
                               <div className="flex-1 text-right">
-                                <p className="font-medium">{toResearcher.name}</p>
-                                <p className="text-sm text-muted-foreground">{toResearcher.institution}</p>
+                                <p className="font-medium">{toResearcher?.name}</p>
+                                <p className="text-sm text-muted-foreground">{toResearcher?.institution}</p>
                               </div>
                             </div>
                             
