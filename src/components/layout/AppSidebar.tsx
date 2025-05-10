@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   File,
   Search,
@@ -39,6 +39,7 @@ export function AppSidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -60,6 +61,46 @@ export function AppSidebar() {
       toast({
         title: "Error",
         description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleNewDocument = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to create a document",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from("documents")
+        .insert({
+          title: "Untitled Document",
+          content: "",
+          user_id: user.id,
+        })
+        .select()
+        .single();
+        
+      if (error) throw error;
+      
+      navigate(`/document/${data.id}`);
+      
+      if (isMobile) {
+        setSidebarOpen(false);
+      }
+    } catch (error) {
+      console.error("Error creating document:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create a new document. Please try again.",
         variant: "destructive",
       });
     }
@@ -118,22 +159,36 @@ export function AppSidebar() {
           {/* Nav links */}
           <div className="flex-grow overflow-y-auto py-4">
             <ul className="space-y-2 px-2">
-              {navigation.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      "flex items-center p-2 rounded-lg hover:bg-accent group transition-all",
-                      collapsed ? "justify-center" : "justify-start"
-                    )}
-                  >
-                    <item.icon size={20} className="text-muted-foreground" />
-                    {!collapsed && (
-                      <span className="ml-3 text-sm font-medium">{item.name}</span>
-                    )}
-                  </Link>
-                </li>
-              ))}
+              {navigation.map((item) => {
+                const isActive = location.pathname === item.href || 
+                  (item.href === "/dashboard" && location.pathname === "/");
+                  
+                return (
+                  <li key={item.name}>
+                    <Link
+                      to={item.href}
+                      className={cn(
+                        "flex items-center p-2 rounded-lg hover:bg-accent group transition-all",
+                        isActive && "bg-accent",
+                        collapsed ? "justify-center" : "justify-start"
+                      )}
+                    >
+                      <item.icon size={20} className={cn(
+                        "text-muted-foreground",
+                        isActive && "text-foreground"
+                      )} />
+                      {!collapsed && (
+                        <span className={cn(
+                          "ml-3 text-sm font-medium",
+                          isActive && "font-semibold"
+                        )}>
+                          {item.name}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -144,7 +199,7 @@ export function AppSidebar() {
                 "w-full",
                 collapsed && "px-0"
               )}
-              onClick={() => navigate('/document/new')}
+              onClick={handleNewDocument}
             >
               <Plus size={16} className={cn(collapsed ? "mr-0" : "mr-2")} />
               {!collapsed && "New Document"}

@@ -11,18 +11,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AIInsightsPanel } from "@/components/research/AIInsightsPanel";
 import {
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Heading1,
-  Heading2,
-  List,
-  ListOrdered,
-  Image,
-  FileText,
   MoreHorizontal,
   Save,
   Zap,
@@ -30,6 +18,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { generateAIContent, createInsightFromAI, AIPromptType } from "@/utils/geminiAI";
 import { supabase } from "@/integrations/supabase/client";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface InsightProps {
   id: string;
@@ -59,12 +48,12 @@ export function DocumentEditor({
   onSaveInsight,
   documentId,
 }: DocumentEditorProps) {
-  const [activeTool, setActiveTool] = useState<string | null>(null);
   const [documentTitle, setDocumentTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [insights, setInsights] = useState<InsightProps[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [aiGeneratedContent, setAiGeneratedContent] = useState<string>("");
   const { toast } = useToast();
 
   // Load saved insights if there's a document ID
@@ -94,8 +83,8 @@ export function DocumentEditor({
     loadInsights();
   }, [documentId]);
 
-  const handleToolClick = (tool: string) => {
-    setActiveTool(tool === activeTool ? null : tool);
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent);
   };
 
   const handleSave = async () => {
@@ -150,6 +139,7 @@ export function DocumentEditor({
       }
       
       setInsights(prev => [newInsight, ...prev]);
+      setAiGeneratedContent(response.text);
       
       toast({
         title: "AI Analysis complete",
@@ -167,6 +157,10 @@ export function DocumentEditor({
     }
   };
 
+  const applyAIContent = (content: string) => {
+    setAiGeneratedContent(content);
+  };
+
   return (
     <div className="relative min-h-[calc(100vh-4rem)]">
       <div className="border-b bg-background sticky top-16 z-20">
@@ -180,115 +174,6 @@ export function DocumentEditor({
           />
           
           <div className="flex flex-wrap items-center gap-1 py-1">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "bold" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("bold")}
-            >
-              <Bold className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "italic" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("italic")}
-            >
-              <Italic className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "underline" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("underline")}
-            >
-              <Underline className="h-4 w-4" />
-            </Button>
-            
-            <div className="h-4 w-px bg-border mx-1" />
-            
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "alignLeft" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("alignLeft")}
-            >
-              <AlignLeft className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "alignCenter" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("alignCenter")}
-            >
-              <AlignCenter className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "alignRight" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("alignRight")}
-            >
-              <AlignRight className="h-4 w-4" />
-            </Button>
-            
-            <div className="h-4 w-px bg-border mx-1" />
-            
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "h1" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("h1")}
-            >
-              <Heading1 className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "h2" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("h2")}
-            >
-              <Heading2 className="h-4 w-4" />
-            </Button>
-            
-            <div className="h-4 w-px bg-border mx-1" />
-            
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "list" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("list")}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "orderedList" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("orderedList")}
-            >
-              <ListOrdered className="h-4 w-4" />
-            </Button>
-            
-            <div className="h-4 w-px bg-border mx-1" />
-            
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "image" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("image")}
-            >
-              <Image className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={activeTool === "file" ? "bg-accent" : ""}
-              onClick={() => handleToolClick("file")}
-            >
-              <FileText className="h-4 w-4" />
-            </Button>
-            
             <div className="ml-auto flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -357,14 +242,18 @@ export function DocumentEditor({
       </div>
       
       <div className="px-4 py-6 md:px-12 md:py-8 lg:px-20 lg:py-10 md:mr-80">
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="w-full min-h-[calc(100vh-16rem)] p-0 text-lg leading-relaxed font-sans bg-transparent border-none outline-none resize-none focus:ring-0"
+        <RichTextEditor 
+          initialValue={content}
+          onSave={handleContentChange}
+          applyAIContent={applyAIContent}
+          aiContent={aiGeneratedContent}
         />
       </div>
       
-      <AIInsightsPanel insights={insights} />
+      <AIInsightsPanel 
+        insights={insights} 
+        onApplyInsight={(text) => applyAIContent(text)}
+      />
     </div>
   );
 }

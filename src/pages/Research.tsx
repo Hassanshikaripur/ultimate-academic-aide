@@ -2,10 +2,14 @@
 import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { KnowledgeGraph } from "@/components/research/KnowledgeGraph";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { PaperAnalysis } from "@/components/research/PaperAnalysis";
+import { ResearchConnections } from "@/components/research/ResearchConnections";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 
 const Research = () => {
+  const [activeTab, setActiveTab] = useState("knowledge-graph");
+
   return (
     <div className="min-h-screen flex bg-background">
       <AppSidebar />
@@ -13,7 +17,7 @@ const Research = () => {
       <div className="flex-1 ml-0 md:ml-64">
         <CustomAppHeader />
         <main className="container mx-auto py-6 px-4">
-          <Tabs defaultValue="knowledge-graph">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="flex justify-between items-center mb-6">
               <TabsList>
                 <TabsTrigger value="knowledge-graph">Knowledge Graph</TabsTrigger>
@@ -27,25 +31,11 @@ const Research = () => {
             </TabsContent>
             
             <TabsContent value="paper-analysis">
-              <Card>
-                <CardHeader>
-                  <h2 className="text-2xl font-serif">Paper Analysis</h2>
-                </CardHeader>
-                <CardContent className="flex items-center justify-center min-h-[30rem]">
-                  <p className="text-muted-foreground">Select papers to analyze with AI</p>
-                </CardContent>
-              </Card>
+              <PaperAnalysis />
             </TabsContent>
             
             <TabsContent value="connections">
-              <Card>
-                <CardHeader>
-                  <h2 className="text-2xl font-serif">Research Connections</h2>
-                </CardHeader>
-                <CardContent className="flex items-center justify-center min-h-[30rem]">
-                  <p className="text-muted-foreground">AI will help you discover connections between your research documents</p>
-                </CardContent>
-              </Card>
+              <ResearchConnections />
             </TabsContent>
           </Tabs>
         </main>

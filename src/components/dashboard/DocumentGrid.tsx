@@ -1,11 +1,21 @@
 
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Folder, File, FileText, Plus, Clock, Trash, Edit, Book, FilePlus } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 interface Document {
   id: string;
@@ -18,7 +28,10 @@ export function DocumentGrid() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function checkAuth() {
@@ -86,7 +99,7 @@ export function DocumentGrid() {
         
       if (error) throw error;
       
-      window.location.href = `/document/${data.id}`;
+      navigate(`/document/${data.id}`);
     } catch (error) {
       console.error("Error creating document:", error);
       toast({
@@ -112,6 +125,42 @@ export function DocumentGrid() {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   }
+
+  const handleDeleteClick = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDocumentToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!documentToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from("documents")
+        .delete()
+        .eq("id", documentToDelete);
+
+      if (error) throw error;
+
+      setDocuments(docs => docs.filter(doc => doc.id !== documentToDelete));
+      toast({
+        title: "Document deleted",
+        description: "The document has been permanently deleted.",
+      });
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete document. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDocumentToDelete(null);
+      setDeleteDialogOpen(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -190,7 +239,12 @@ export function DocumentGrid() {
                       <Edit size={14} />
                       Edit
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => handleDeleteClick(e, doc.id)}
+                    >
                       <Trash size={14} />
                     </Button>
                   </div>
@@ -200,6 +254,23 @@ export function DocumentGrid() {
           ))}
         </div>
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this document? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
