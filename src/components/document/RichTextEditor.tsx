@@ -22,18 +22,27 @@ export function RichTextEditor({
   const [content, setContent] = useState(initialValue);
   const quillRef = useRef<ReactQuill>(null);
   const navigate = useNavigate();
+  const [previousAiContent, setPreviousAiContent] = useState<string | null>(null);
 
-  // Effect to handle AI content application
+  // Effect to handle AI content application only when aiContent changes
   useEffect(() => {
-    if (applyAIContent && aiContent) {
+    if (applyAIContent && aiContent && aiContent !== previousAiContent) {
       const quill = quillRef.current?.getEditor();
       if (quill) {
-        const range = quill.getSelection();
-        if (range) {
-          quill.insertText(range.index, aiContent);
-        } else {
-          quill.insertText(quill.getText().length, aiContent);
-        }
+        // Get current selection or use the end of the document
+        const range = quill.getSelection() || { index: quill.getText().length, length: 0 };
+        
+        // Format AI content with some styling
+        const formattedContent = `\n\n<div class="ai-content-block"><em>AI Generated:</em>\n${aiContent}</div>\n`;
+        
+        // Insert formatted content
+        quill.clipboard.dangerouslyPasteHTML(range.index, formattedContent);
+        
+        // Update state to track that we've processed this content
+        setPreviousAiContent(aiContent);
+        
+        // Focus back on editor
+        quill.focus();
       }
     }
   }, [aiContent, applyAIContent]);
@@ -76,6 +85,39 @@ export function RichTextEditor({
         </Button>
       </div>
       
+      <style>
+        {`
+          .ai-content-block {
+            background-color: rgba(96, 165, 250, 0.1);
+            border-left: 3px solid #3b82f6;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 4px;
+          }
+          .ai-content-block em {
+            color: #3b82f6;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+          }
+          .ql-editor {
+            min-height: 350px;
+            font-size: 16px;
+            line-height: 1.6;
+          }
+          .ql-toolbar {
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            background-color: #f8f9fa;
+          }
+          .ql-container {
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            font-family: 'Inter', sans-serif;
+          }
+        `}
+      </style>
+      
       <ReactQuill
         ref={quillRef}
         theme="snow"
@@ -83,7 +125,7 @@ export function RichTextEditor({
         onChange={handleChange}
         modules={modules}
         formats={formats}
-        className="flex-1"
+        className="flex-1 rounded-md shadow-sm"
         style={{ height: "calc(100% - 120px)" }}
       />
     </div>
