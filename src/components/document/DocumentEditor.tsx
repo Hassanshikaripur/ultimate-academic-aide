@@ -14,6 +14,11 @@ import {
   MoreHorizontal,
   Save,
   Zap,
+  FileDown,
+  Trash2,
+  Share2,
+  Download,
+  Code,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateAIContent, createInsightFromAI, AIPromptType } from "@/utils/geminiAI";
@@ -93,6 +98,10 @@ export function DocumentEditor({
     setIsSaving(true);
     try {
       await onSave(documentTitle, content);
+      toast({
+        title: "Document saved",
+        description: "Your document has been successfully saved.",
+      });
     } catch (error) {
       console.error("Error in save handler:", error);
       toast({
@@ -157,6 +166,87 @@ export function DocumentEditor({
     }
   };
 
+  // Handle code formatting AI task
+  const handleCodeFormatting = async () => {
+    if (isAnalyzing) return;
+    
+    setIsAnalyzing(true);
+    toast({
+      title: "Code formatting started",
+      description: "AI is formatting code blocks in your document...",
+    });
+
+    try {
+      // Custom prompt for code formatting
+      const codeFormattingPrompt = `
+        Find all code blocks in the following document and format them properly.
+        For each code block:
+        1. Detect the programming language
+        2. Apply proper indentation and syntax formatting
+        3. Return the formatted code blocks with language identified
+        
+        If you don't find any code blocks, suggest how to format the document content for better readability.
+        
+        Document content: ${content}
+      `;
+      
+      const response = await generateAIContent(codeFormattingPrompt, 'analyze');
+      
+      if (response.error) {
+        toast({
+          title: "Code formatting failed",
+          description: `Error: ${response.error}`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const newInsight = {
+        id: `insight-code-${Date.now()}`,
+        title: "Code Formatting",
+        text: response.text,
+        source: "Gemini AI",
+        relevance: 95
+      };
+      
+      // Save insight to database if document has been saved
+      if (documentId && onSaveInsight) {
+        await onSaveInsight({
+          title: newInsight.title,
+          text: newInsight.text,
+          source: newInsight.source,
+          relevance: newInsight.relevance,
+        });
+      }
+      
+      setInsights(prev => [newInsight, ...prev]);
+      setAiGeneratedContent(response.text);
+      
+      toast({
+        title: "Code formatting complete",
+        description: "The formatted code is available in the insights panel.",
+      });
+    } catch (error) {
+      console.error("Error during code formatting:", error);
+      toast({
+        title: "Code formatting failed",
+        description: "An unexpected error occurred. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Handle clear insights
+  const handleClearInsights = () => {
+    setInsights([]);
+    toast({
+      title: "Insights cleared",
+      description: "All AI insights have been removed from the panel.",
+    });
+  };
+
   // Fix: Update the applyAIContent function to use the text property from InsightProps
   const applyAIContent = (content: string | InsightProps) => {
     if (typeof content === 'string') {
@@ -211,6 +301,11 @@ export function DocumentEditor({
                   <DropdownMenuItem onClick={() => handleAIAnalyze('research')}>
                     Find Research Connections
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleCodeFormatting}>
+                    <Code className="h-4 w-4 mr-2" />
+                    Format Code Blocks
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               
@@ -227,19 +322,30 @@ export function DocumentEditor({
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Document Options</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-                  <DropdownMenuItem>Export as Word</DropdownMenuItem>
-                  <DropdownMenuItem>Share Document</DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Export as PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export as Word
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share Document
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Document History</DropdownMenuItem>
-                  <DropdownMenuItem>Document Settings</DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Document
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -258,7 +364,8 @@ export function DocumentEditor({
       
       <AIInsightsPanel 
         insights={insights} 
-        onApplyInsight={(text) => applyAIContent(text)}
+        onApplyInsight={(insight) => applyAIContent(insight)}
+        onClearInsights={handleClearInsights}
       />
     </div>
   );
