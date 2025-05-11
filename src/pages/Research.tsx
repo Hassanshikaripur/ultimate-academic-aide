@@ -1,4 +1,3 @@
-
 import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { KnowledgeGraph } from "@/components/research/KnowledgeGraph";
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ReactFlowProvider } from "@xyflow/react";
 
 const Research = () => {
   const [activeTab, setActiveTab] = useState("knowledge-graph");
@@ -316,17 +316,19 @@ const Research = () => {
               </div>
             </div>
             
-            <TabsContent value="knowledge-graph">
-              <KnowledgeGraph />
-            </TabsContent>
-            
-            <TabsContent value="paper-analysis">
-              <PaperAnalysis />
-            </TabsContent>
-            
-            <TabsContent value="connections">
-              <ResearchConnections />
-            </TabsContent>
+            <ReactFlowProvider>
+              <TabsContent value="knowledge-graph">
+                <KnowledgeGraph />
+              </TabsContent>
+              
+              <TabsContent value="paper-analysis">
+                <PaperAnalysis />
+              </TabsContent>
+              
+              <TabsContent value="connections">
+                <ResearchConnections />
+              </TabsContent>
+            </ReactFlowProvider>
           </Tabs>
         </main>
       </div>
