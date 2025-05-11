@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AIInsightsPanel } from "@/components/research/AIInsightsPanel";
+import { AIInsightsPanel, InsightProps } from "@/components/research/AIInsightsPanel";
 import {
   MoreHorizontal,
   Save,
@@ -24,14 +23,6 @@ import { useToast } from "@/hooks/use-toast";
 import { generateAIContent, createInsightFromAI, AIPromptType } from "@/utils/geminiAI";
 import { supabase } from "@/integrations/supabase/client";
 import { RichTextEditor } from "./RichTextEditor";
-
-interface InsightProps {
-  id: string;
-  title: string;
-  text: string;
-  source: string;
-  relevance: number;
-}
 
 interface DocumentEditorProps {
   initialTitle: string;
@@ -247,7 +238,7 @@ export function DocumentEditor({
     });
   };
 
-  // Fix: Update the applyAIContent function to use the text property from InsightProps
+  // Update the applyAIContent function to handle both string and InsightProps
   const applyAIContent = (content: string | InsightProps) => {
     if (typeof content === 'string') {
       setAiGeneratedContent(content);

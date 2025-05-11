@@ -203,7 +203,9 @@ export function AIInsightsPanel({
                             className="h-7 px-2 text-xs text-primary"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onApplyInsight && onApplyInsight(insight);
+                              if (onApplyInsight && insight) {
+                                onApplyInsight(insight);
+                              }
                             }}
                           >
                             Apply

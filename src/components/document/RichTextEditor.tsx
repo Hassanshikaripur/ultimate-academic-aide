@@ -1,4 +1,3 @@
-
 import { useRef, useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -6,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
+import { InsightProps } from "@/components/research/AIInsightsPanel";
 
 interface RichTextEditorProps {
   initialValue: string;
   onSave: (content: string) => void;
-  applyAIContent?: (content: string) => void;
+  applyAIContent?: (content: string | InsightProps) => void;
   aiContent?: string;
 }
 
