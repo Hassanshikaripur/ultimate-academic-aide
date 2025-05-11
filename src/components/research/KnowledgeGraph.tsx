@@ -15,7 +15,8 @@ import {
   ConnectionLineType,
   Position,
   useReactFlow,
-  NodeTypes
+  NodeTypes,
+  EdgeTypes
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -49,6 +50,11 @@ interface NodeData extends Record<string, unknown> {
   description: string;
 }
 
+// Define custom edge data type that ensures label is a string
+interface CustomEdge extends Omit<Edge, 'label'> {
+  label?: string;
+}
+
 // Initial flow setup with some example nodes
 const initialNodes: Node<NodeData>[] = [
   {
@@ -69,7 +75,7 @@ const initialNodes: Node<NodeData>[] = [
   },
 ];
 
-const initialEdges: Edge[] = [
+const initialEdges: CustomEdge[] = [
   { id: 'e1-2', source: '1', target: '2', label: 'relates to', animated: true },
   { id: 'e1-3', source: '1', target: '3', label: 'used in' }
 ];
@@ -84,7 +90,7 @@ export function KnowledgeGraph() {
   const [nodeDescription, setNodeDescription] = useState("");
   const [edgeLabel, setEdgeLabel] = useState("relates to");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<CustomEdge | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node<NodeData> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [graphName, setGraphName] = useState("Research Knowledge Graph");
@@ -138,7 +144,7 @@ export function KnowledgeGraph() {
           if (dbNodes.length > 0) {
             setNodes(dbNodes);
             if (dbEdges.length > 0) {
-              setEdges(dbEdges);
+              setEdges(dbEdges as CustomEdge[]);
             }
           }
         }
@@ -217,7 +223,7 @@ export function KnowledgeGraph() {
     (connection: Connection) => {
       if (!connection.source || !connection.target) return;
       
-      const newEdge = {
+      const newEdge: CustomEdge = {
         ...connection,
         id: `e${connection.source}-${connection.target}-${Date.now()}`,
         label: edgeLabel,
@@ -234,7 +240,7 @@ export function KnowledgeGraph() {
   );
   
   // Save edge to database
-  const saveEdgeToDatabase = async (edge: any) => {
+  const saveEdgeToDatabase = async (edge: CustomEdge) => {
     try {
       const { error } = await supabase
         .from('researcher_connections')
@@ -242,7 +248,7 @@ export function KnowledgeGraph() {
           id: edge.id,
           source_id: edge.source,
           target_id: edge.target,
-          relationship_type: edge.label as string, // Cast to string to handle ReactNode
+          relationship_type: edge.label || "",
           animated: edge.animated || false
         });
         
@@ -351,7 +357,7 @@ export function KnowledgeGraph() {
 
   // Handle edge selection
   const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
-    setSelectedEdge(edge);
+    setSelectedEdge(edge as CustomEdge);
   }, []);
 
   // Update edge label
@@ -489,7 +495,7 @@ export function KnowledgeGraph() {
         const json = JSON.parse(e.target?.result as string);
         if (json.nodes && json.edges) {
           setNodes(json.nodes);
-          setEdges(json.edges);
+          setEdges(json.edges as CustomEdge[]);
           toast({
             description: "Graph imported successfully",
           });
@@ -658,7 +664,7 @@ export function KnowledgeGraph() {
                         <Label htmlFor="update-edge-label" className="text-right">Update Label</Label>
                         <Input 
                           id="update-edge-label" 
-                          defaultValue={selectedEdge.label as string} 
+                          defaultValue={selectedEdge.label || ""} 
                           onBlur={(e) => handleUpdateEdgeLabel(e.target.value)} 
                           className="col-span-3" 
                         />
