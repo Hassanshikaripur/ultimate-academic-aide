@@ -40,11 +40,13 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 
-type NodeData = {
+// Define the node data interface
+interface NodeData {
   label: string;
   description: string;
-};
+}
 
 // Initial flow setup with some example nodes
 const initialNodes: Node<NodeData>[] = [
@@ -74,7 +76,7 @@ const initialEdges: Edge[] = [
 export function KnowledgeGraph() {
   const flowRef = useRef(null);
   const reactFlowInstance = useReactFlow();
-  const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [nodeName, setNodeName] = useState("");
   const [nodeType, setNodeType] = useState<string>("default");
@@ -110,16 +112,15 @@ export function KnowledgeGraph() {
         
         // If we have data, convert it to nodes and edges
         if (researchersData && researchersData.length > 0) {
-          const dbNodes = researchersData.map((researcher) => ({
+          const dbNodes: Node<NodeData>[] = researchersData.map((researcher) => ({
             id: researcher.id,
             data: { 
               label: researcher.name, 
               description: `${researcher.institution} - ${researcher.field}` 
             },
-            position: researcher.position || { 
-              x: Math.random() * 500, 
-              y: Math.random() * 500 
-            },
+            position: typeof researcher.position === 'object' && researcher.position !== null
+              ? researcher.position as { x: number, y: number }
+              : { x: Math.random() * 500, y: Math.random() * 500 },
             type: 'default'
           }));
           
@@ -173,7 +174,7 @@ export function KnowledgeGraph() {
       type: nodeType as 'default' | 'input' | 'output'
     };
     
-    setNodes((nds) => nds.concat(newNode));
+    setNodes((nds) => [...nds, newNode]);
     setNodeName("");
     setNodeDescription("");
     
@@ -552,8 +553,8 @@ export function KnowledgeGraph() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search nodes..."
                 className="w-48"
-                prefix={<Search className="h-4 w-4 text-muted-foreground" />}
               />
+              <Search className="h-4 w-4 text-muted-foreground absolute ml-2" />
             </div>
             
             <Dialog>

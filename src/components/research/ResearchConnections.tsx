@@ -26,7 +26,7 @@ interface Researcher {
   institution: string;
   field: string;
   year: number;
-  position?: { x: number; y: number };
+  position: { x: number; y: number };
 }
 
 interface Connection {
@@ -164,7 +164,22 @@ export function ResearchConnections() {
         
         // If we have data, use it
         if (researchersData && researchersData.length > 0) {
-          setResearchers(researchersData);
+          const processedResearchers: Researcher[] = researchersData.map(r => ({
+            id: r.id,
+            name: r.name,
+            institution: r.institution,
+            field: r.field,
+            year: r.year,
+            position: typeof r.position === 'object' && r.position !== null
+              ? { 
+                  x: (r.position as any).x || Math.random() * 500, 
+                  y: (r.position as any).y || Math.random() * 400 
+                }
+              : { x: Math.random() * 500, y: Math.random() * 400 }
+          }));
+          
+          setResearchers(processedResearchers);
+          
           if (connectionsData) {
             setConnections(connectionsData);
           }
