@@ -74,6 +74,152 @@ export type Database = {
           },
         ]
       }
+      paper_notes: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string
+          paper_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes: string
+          paper_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string
+          paper_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paper_notes_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      papers: {
+        Row: {
+          abstract: string
+          authors: string
+          created_at: string
+          doi: string | null
+          id: string
+          journal: string
+          keywords: string
+          title: string
+          url: string | null
+          year: number
+        }
+        Insert: {
+          abstract: string
+          authors: string
+          created_at?: string
+          doi?: string | null
+          id?: string
+          journal: string
+          keywords: string
+          title: string
+          url?: string | null
+          year: number
+        }
+        Update: {
+          abstract?: string
+          authors?: string
+          created_at?: string
+          doi?: string | null
+          id?: string
+          journal?: string
+          keywords?: string
+          title?: string
+          url?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
+      researcher_connections: {
+        Row: {
+          animated: boolean | null
+          color: string | null
+          created_at: string
+          id: string
+          relationship_type: string
+          source_id: string | null
+          target_id: string | null
+        }
+        Insert: {
+          animated?: boolean | null
+          color?: string | null
+          created_at?: string
+          id: string
+          relationship_type: string
+          source_id?: string | null
+          target_id?: string | null
+        }
+        Update: {
+          animated?: boolean | null
+          color?: string | null
+          created_at?: string
+          id?: string
+          relationship_type?: string
+          source_id?: string | null
+          target_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "researcher_connections_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "researchers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "researcher_connections_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "researchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      researchers: {
+        Row: {
+          created_at: string
+          field: string
+          id: string
+          institution: string
+          name: string
+          position: Json | null
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          field: string
+          id: string
+          institution: string
+          name: string
+          position?: Json | null
+          year: number
+        }
+        Update: {
+          created_at?: string
+          field?: string
+          id?: string
+          institution?: string
+          name?: string
+          position?: Json | null
+          year?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

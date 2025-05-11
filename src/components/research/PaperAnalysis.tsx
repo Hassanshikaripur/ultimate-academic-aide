@@ -70,6 +70,7 @@ export function PaperAnalysis() {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   
   // Load papers from the database
@@ -89,10 +90,10 @@ export function PaperAnalysis() {
         
         // If we have papers in the database, use those
         if (data && data.length > 0) {
-          const formattedPapers = data.map(paper => ({
+          const formattedPapers: Paper[] = data.map(paper => ({
             ...paper,
-            authors: Array.isArray(paper.authors) ? paper.authors : JSON.parse(paper.authors),
-            keywords: Array.isArray(paper.keywords) ? paper.keywords : JSON.parse(paper.keywords)
+            authors: typeof paper.authors === 'string' ? JSON.parse(paper.authors) : paper.authors,
+            keywords: typeof paper.keywords === 'string' ? JSON.parse(paper.keywords) : paper.keywords
           }));
           setPapers(formattedPapers);
         } else {
@@ -146,6 +147,8 @@ export function PaperAnalysis() {
     if (!selectedPaper) return;
     
     try {
+      setIsSaving(true);
+      
       // Update notes in database
       const { error } = await supabase
         .from('paper_notes')
@@ -167,6 +170,8 @@ export function PaperAnalysis() {
         description: "Failed to save notes. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
   
@@ -177,9 +182,9 @@ export function PaperAnalysis() {
         .from('paper_notes')
         .select('notes')
         .eq('paper_id', paperId)
-        .single();
+        .maybeSingle();
         
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+      if (error) {
         throw error;
       }
         
@@ -387,7 +392,18 @@ export function PaperAnalysis() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                           />
-                          <Button size="sm" className="mt-2" onClick={saveNotes}>Save Notes</Button>
+                          <Button 
+                            size="sm" 
+                            className="mt-2"
+                            onClick={saveNotes}
+                            disabled={isSaving}
+                          >
+                            {isSaving ? (
+                              <><span className="animate-spin mr-2">◌</span> Saving...</>
+                            ) : (
+                              <>Save Notes</>
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </div>

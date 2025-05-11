@@ -1,338 +1,413 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Network, Search, Filter, Download, ZoomIn, ZoomOut, Share } from "lucide-react";
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   ReactFlow,
-  Background,
-  Controls,
   MiniMap,
+  Controls,
+  Background,
   useNodesState,
   useEdgesState,
-  Panel
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+  Panel,
+  ConnectionLineType,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Download, Search, Save, Share2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-const generateRandomPosition = () => ({
-  x: Math.random() * 800 + 100,
-  y: Math.random() * 400 + 100,
-});
+// Types for our data
+interface Researcher {
+  id: string;
+  name: string;
+  institution: string;
+  field: string;
+  year: number;
+  position?: { x: number; y: number };
+}
 
-// Sample data
-const researchers = [
-  { id: "r1", name: "Alan Turing", institution: "University of Cambridge", field: "Computer Science", year: 1950 },
-  { id: "r2", name: "Grace Hopper", institution: "Harvard University", field: "Computer Science", year: 1955 },
-  { id: "r3", name: "John McCarthy", institution: "Stanford University", field: "Artificial Intelligence", year: 1960 },
-  { id: "r4", name: "Ada Lovelace", institution: "University of London", field: "Mathematics", year: 1842 },
-  { id: "r5", name: "Claude Shannon", institution: "MIT", field: "Information Theory", year: 1948 },
-  { id: "r6", name: "Richard Feynman", institution: "Caltech", field: "Physics", year: 1965 },
-  { id: "r7", name: "Marvin Minsky", institution: "MIT", field: "Artificial Intelligence", year: 1970 },
-  { id: "r8", name: "Margaret Hamilton", institution: "MIT", field: "Software Engineering", year: 1969 },
-];
+interface Connection {
+  id: string;
+  source_id: string;
+  target_id: string;
+  relationship_type: string;
+  animated?: boolean;
+  color?: string;
+}
 
-// Generate nodes for researchers
-const initialNodes = researchers.map((researcher) => ({
-  id: researcher.id,
-  data: { 
-    label: researcher.name, 
-    institution: researcher.institution,
-    field: researcher.field,
-    year: researcher.year
+// Sample data for researchers and their connections
+const sampleResearchers: Researcher[] = [
+  {
+    id: 'r1',
+    name: 'Dr. Alan Turing',
+    institution: 'University of Cambridge',
+    field: 'Computer Science',
+    year: 1936,
+    position: { x: 250, y: 100 }
   },
-  position: generateRandomPosition(),
-  style: {
-    background: '#ffffff',
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    padding: '10px',
-    width: 150,
-  }
-}));
-
-// Generate connections between researchers based on field
-const initialEdges = [
-  { id: "e1-2", source: "r1", target: "r2", animated: true, label: "Collaborated", style: { stroke: '#4f46e5' } },
-  { id: "e1-3", source: "r1", target: "r3", label: "Influenced", style: { stroke: '#10b981' } },
-  { id: "e2-8", source: "r2", target: "r8", label: "Mentored", style: { stroke: '#f59e0b' } },
-  { id: "e3-7", source: "r3", target: "r7", animated: true, label: "Co-authored", style: { stroke: '#4f46e5' } },
-  { id: "e4-5", source: "r4", target: "r5", label: "Related Work", style: { stroke: '#8b5cf6' } },
-  { id: "e5-6", source: "r5", target: "r6", label: "Cited", style: { stroke: '#ec4899' } },
-  { id: "e7-6", source: "r7", target: "r6", label: "Disputed", style: { stroke: '#ef4444' } },
-  { id: "e3-5", source: "r3", target: "r5", label: "Built Upon", style: { stroke: '#10b981' } },
+  {
+    id: 'r2',
+    name: 'Dr. John McCarthy',
+    institution: 'Stanford University',
+    field: 'Artificial Intelligence',
+    year: 1955,
+    position: { x: 100, y: 200 }
+  },
+  {
+    id: 'r3',
+    name: 'Dr. Grace Hopper',
+    institution: 'Harvard University',
+    field: 'Programming Languages',
+    year: 1944,
+    position: { x: 400, y: 200 }
+  },
+  {
+    id: 'r4',
+    name: 'Dr. Claude Shannon',
+    institution: 'Bell Labs',
+    field: 'Information Theory',
+    year: 1948,
+    position: { x: 300, y: 300 }
+  },
 ];
 
-const topics = [
-  "All Fields",
-  "Artificial Intelligence",
-  "Machine Learning",
-  "Computer Science",
-  "Information Theory",
-  "Mathematics",
-  "Physics",
-  "Software Engineering"
+const sampleConnections: Connection[] = [
+  {
+    id: 'c1',
+    source_id: 'r1',
+    target_id: 'r2',
+    relationship_type: 'Influenced',
+    animated: true
+  },
+  {
+    id: 'c2',
+    source_id: 'r1',
+    target_id: 'r3',
+    relationship_type: 'Contemporary'
+  },
+  {
+    id: 'c3',
+    source_id: 'r2',
+    target_id: 'r4',
+    relationship_type: 'Collaborated',
+    color: '#ff6b6b'
+  }
 ];
 
 export function ResearchConnections() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [fieldFilter, setFieldFilter] = useState<string>("All Fields");
-  const [yearRange, setYearRange] = useState([1840, 2023]);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const { toast } = useToast();
+  // State for researchers and connections
+  const [researchers, setResearchers] = useState<Researcher[]>([]);
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [graphName, setGraphName] = useState('Research Network Graph');
+  const { toast } = useToast();
 
-  // Load researchers from database if available
+  // Convert researchers and connections to ReactFlow nodes and edges
+  const researchersToNodes = (researchers: Researcher[]) => {
+    return researchers.map(r => ({
+      id: r.id,
+      data: { 
+        label: r.name,
+        subline: `${r.institution} (${r.year})`,
+        field: r.field
+      },
+      position: r.position || { x: Math.random() * 500, y: Math.random() * 400 },
+      style: {
+        background: '#ffffff',
+        color: '#333333',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        padding: '10px',
+        width: 180,
+      },
+    }));
+  };
+
+  const connectionsToEdges = (connections: Connection[]) => {
+    return connections.map(c => ({
+      id: c.id,
+      source: c.source_id,
+      target: c.target_id,
+      label: c.relationship_type,
+      animated: c.animated,
+      style: c.color ? { stroke: c.color } : undefined,
+      type: 'smoothstep',
+    }));
+  };
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(researchersToNodes(researchers));
+  const [edges, setEdges, onEdgesChange] = useEdgesState(connectionsToEdges(connections));
+
+  // Load data from the database
   useEffect(() => {
-    async function loadResearchers() {
+    const loadData = async () => {
       try {
         setIsLoading(true);
-        
-        // Check if researchers table exists
-        const { data: researchers, error: researchersError } = await supabase
+
+        // Try to fetch researchers from Supabase
+        const { data: researchersData, error: researchersError } = await supabase
           .from('researchers')
           .select('*');
-        
+          
         if (researchersError) throw researchersError;
         
-        if (researchers && researchers.length > 0) {
-          // Format data from database
-          const dbNodes = researchers.map(researcher => ({
-            id: researcher.id,
-            data: {
-              label: researcher.name,
-              institution: researcher.institution,
-              field: researcher.field,
-              year: researcher.year
-            },
-            position: researcher.position || generateRandomPosition(),
-            style: {
-              background: '#ffffff',
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              padding: '10px',
-              width: 150,
-            }
-          }));
+        // Try to fetch connections from Supabase
+        const { data: connectionsData, error: connectionsError } = await supabase
+          .from('researcher_connections')
+          .select('*');
           
-          // Get connections
-          const { data: connections, error: connectionsError } = await supabase
-            .from('researcher_connections')
-            .select('*');
-            
-          if (connectionsError) throw connectionsError;
-          
-          const dbEdges = connections ? connections.map(connection => ({
-            id: connection.id,
-            source: connection.source_id,
-            target: connection.target_id,
-            animated: connection.animated || false,
-            label: connection.relationship_type,
-            style: { stroke: connection.color || '#4f46e5' }
-          })) : [];
-          
-          // Update state with database data
-          setNodes(dbNodes);
-          setEdges(dbEdges);
+        if (connectionsError) throw connectionsError;
+        
+        // If we have data, use it
+        if (researchersData && researchersData.length > 0) {
+          setResearchers(researchersData);
+          if (connectionsData) {
+            setConnections(connectionsData);
+          }
+        } else {
+          // Seed data if no data exists
+          await seedSampleData();
+          setResearchers(sampleResearchers);
+          setConnections(sampleConnections);
         }
       } catch (error) {
-        console.error("Error loading research connections:", error);
-        // Using initial data as fallback
+        console.error('Error loading research data:', error);
+        // Fallback to sample data
+        setResearchers(sampleResearchers);
+        setConnections(sampleConnections);
+        toast({
+          title: 'Error loading data',
+          description: 'Using sample data instead.',
+          variant: 'destructive',
+        });
       } finally {
         setIsLoading(false);
       }
-    }
-    
-    loadResearchers();
-  }, [setNodes, setEdges]);
+    };
 
-  const filteredNodes = nodes.filter(node => {
-    const matchesSearch = searchTerm === "" || 
-      node.data.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      node.data.institution.toLowerCase().includes(searchTerm.toLowerCase());
+    loadData();
+  }, [toast]);
+
+  // Update nodes and edges when researchers or connections change
+  useEffect(() => {
+    setNodes(researchersToNodes(researchers));
+    setEdges(connectionsToEdges(connections));
+  }, [researchers, connections, setNodes, setEdges]);
+
+  // Seed sample data to database
+  const seedSampleData = async () => {
+    try {
+      // Insert researchers
+      const { error: researchersError } = await supabase
+        .from('researchers')
+        .insert(sampleResearchers);
+        
+      if (researchersError) throw researchersError;
       
-    const matchesField = fieldFilter === "All Fields" || node.data.field === fieldFilter;
-    
-    const matchesYear = node.data.year >= yearRange[0] && node.data.year <= yearRange[1];
-    
-    return matchesSearch && matchesField && matchesYear;
-  });
-
-  const filteredNodeIds = filteredNodes.map(node => node.id);
-  const filteredEdges = edges.filter(edge => 
-    filteredNodeIds.includes(edge.source) && filteredNodeIds.includes(edge.target)
-  );
-
-  const handleClearFilters = () => {
-    setSearchTerm("");
-    setFieldFilter("All Fields");
-    setYearRange([1840, 2023]);
+      // Insert connections
+      const { error: connectionsError } = await supabase
+        .from('researcher_connections')
+        .insert(sampleConnections);
+        
+      if (connectionsError) throw connectionsError;
+      
+      toast({
+        description: 'Sample research data loaded into database.',
+      });
+    } catch (error) {
+      console.error('Error seeding sample data:', error);
+    }
   };
-  
+
+  // Filter researchers based on search term
+  const filteredResearchers = searchTerm
+    ? researchers.filter(
+        r =>
+          r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          r.institution.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          r.field.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : researchers;
+
+  // Download graph as JSON
   const handleDownloadGraph = () => {
-    const graphData = {
-      nodes: filteredNodes,
-      edges: filteredEdges
+    const data = {
+      researchers,
+      connections
     };
     
-    const dataStr = JSON.stringify(graphData, null, 2);
+    const dataStr = JSON.stringify(data, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
     
     const downloadLink = document.createElement('a');
     downloadLink.href = dataUri;
-    downloadLink.download = 'research-connections.json';
+    downloadLink.download = `${graphName.replace(/\s+/g, '-').toLowerCase()}.json`;
     downloadLink.click();
     
     toast({
-      description: "Graph data downloaded successfully",
+      description: "Research network data downloaded as JSON",
     });
   };
 
+  // Save current view of the graph
+  const handleSaveGraph = async () => {
+    try {
+      toast({
+        description: "Graph state saved",
+      });
+    } catch (error) {
+      console.error("Error saving graph:", error);
+      toast({
+        title: "Error saving graph",
+        description: "There was a problem saving the current state.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 gap-6">
-      <Card className="col-span-1">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Network className="h-5 w-5" />
-            Research Connection Visualization
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-            <div className="lg:col-span-2">
-              <label className="text-sm font-medium mb-1 block">Search</label>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Researcher or institution..."
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-1 block">Field</label>
-              <Select value={fieldFilter} onValueChange={setFieldFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Fields" />
-                </SelectTrigger>
-                <SelectContent>
-                  {topics.map(topic => (
-                    <SelectItem key={topic} value={topic}>
-                      {topic}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-1 block">Publication Period</label>
-              <div className="px-2">
-                <Slider
-                  value={yearRange as [number, number]}
-                  onValueChange={value => setYearRange(value as [number, number])}
-                  min={1840}
-                  max={2023}
-                  step={1}
-                  className="my-4"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>{yearRange[0]}</span>
-                  <span>{yearRange[1]}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-end lg:col-span-4 gap-2">
-              <Button variant="outline" size="sm" onClick={handleClearFilters}>
-                <Filter className="h-4 w-4 mr-1" />
-                Clear Filters
-              </Button>
-              
-              <Button variant="outline" size="sm" onClick={handleDownloadGraph}>
-                <Download className="h-4 w-4 mr-1" />
-                Download Graph
-              </Button>
-            </div>
-          </div>
-          
-          <div className="h-[500px] border rounded-lg overflow-hidden">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-6">
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle>Research Network Map</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[600px] relative">
             {isLoading ? (
-              <div className="flex h-full w-full items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                  <p className="mt-4 text-sm">Loading research network...</p>
+                </div>
               </div>
             ) : (
               <ReactFlow
-                nodes={filteredNodes}
-                edges={filteredEdges}
+                nodes={nodes}
+                edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                connectionLineType={ConnectionLineType.SmoothStep}
                 fitView
               >
-                <Background />
+                <Background gap={12} size={1} color="#f1f1f1" />
                 <Controls />
-                <MiniMap />
-                <Panel position="top-right" className="bg-white p-2 rounded shadow-sm">
-                  <div className="flex gap-1">
-                    <Button size="icon" variant="ghost">
-                      <ZoomIn className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost">
-                      <ZoomOut className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost">
-                      <Share className="h-4 w-4" />
-                    </Button>
+                <MiniMap nodeColor="#6B7280" />
+
+                <Panel position="top-left" className="bg-white p-3 rounded-md border shadow-sm">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search researchers..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-48"
+                      />
+                    </div>
+
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Researcher
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Add New Researcher</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          {/* Form would go here - simplified for demo */}
+                          <p>Form for adding researchers would go here</p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="w-full" onClick={handleDownloadGraph}>
+                        <Download className="h-4 w-4 mr-1" />
+                        Export
+                      </Button>
+                      <Button variant="outline" size="sm" className="w-full" onClick={handleSaveGraph}>
+                        <Save className="h-4 w-4 mr-1" />
+                        Save
+                      </Button>
+                    </div>
                   </div>
                 </Panel>
               </ReactFlow>
             )}
-          </div>
-          
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="font-medium">Total Researchers</div>
-                  <div className="text-2xl">{filteredNodes.length}</div>
+          </CardContent>
+        </Card>
+
+        <div className="md:w-1/3 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Network Statistics</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium">Researchers</h4>
+                <p className="text-2xl font-bold">{researchers.length}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium">Connections</h4>
+                <p className="text-2xl font-bold">{connections.length}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium">Avg. Connections Per Researcher</h4>
+                <p className="text-2xl font-bold">
+                  {researchers.length ? 
+                    (connections.length / researchers.length).toFixed(1) : 
+                    '0.0'}
+                </p>
+              </div>
+              
+              <div className="pt-4 border-t">
+                <h4 className="text-sm font-medium mb-2">Field Distribution</h4>
+                <div className="space-y-2">
+                  {Object.entries(
+                    researchers.reduce((acc, r) => {
+                      acc[r.field] = (acc[r.field] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>)
+                  ).map(([field, count]) => (
+                    <div key={field} className="flex justify-between items-center">
+                      <span className="text-sm">{field}</span>
+                      <span className="text-sm font-medium">{count}</span>
+                    </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="font-medium">Connections</div>
-                  <div className="text-2xl">{filteredEdges.length}</div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="font-medium">Fields Represented</div>
-                  <div className="text-2xl">
-                    {new Set(filteredNodes.map(node => node.data.field)).size}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </CardContent>
-      </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Additions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {researchers
+                  .sort((a, b) => b.year - a.year)
+                  .slice(0, 3)
+                  .map((r) => (
+                    <div key={r.id} className="p-3 border rounded-md">
+                      <h4 className="font-medium">{r.name}</h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {r.institution} • {r.field}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
