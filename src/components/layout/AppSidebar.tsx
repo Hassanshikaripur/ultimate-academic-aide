@@ -139,7 +139,7 @@ export function AppSidebar() {
           <div className="flex items-center justify-between p-4 border-b">
             {!collapsed && (
               <Link to="/dashboard" className="flex items-center">
-                <span className="text-xl font-serif font-bold text-primary">ScholarScribe</span>
+                <span className="text-xl font-serif font-bold text-primary">Nexora</span>
               </Link>
             )}
             

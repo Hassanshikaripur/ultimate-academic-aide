@@ -195,7 +195,7 @@ export function DocumentGrid() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-serif font-bold">Documents</h1>
+          <h1 className="text-3xl font-serif font-bold"><Folder className="inline-block mb-1" /> Documents</h1>
           <p className="text-muted-foreground mt-1">Create and manage your research documents</p>
         </div>
         <Button onClick={handleCreateDocument} className="gap-2">
@@ -222,7 +222,7 @@ export function DocumentGrid() {
             <Link key={doc.id} to={`/document/${doc.id}`} className="block group">
               <Card className="h-full overflow-hidden hover:border-primary transition-colors">
                 <CardHeader className="pb-2">
-                  <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">{doc.title}</CardTitle>
+                  <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors flex items-center justify-between">{doc.title}{<File className="inline-block mb-2" />}</CardTitle>
                   <CardDescription className="flex items-center gap-1 text-xs">
                     <Clock size={12} />
                     Updated {formatDate(doc.updated_at)}

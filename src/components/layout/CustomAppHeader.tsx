@@ -69,7 +69,7 @@ export function CustomAppHeader() {
       <div className="container flex h-full items-center justify-between">
         <div className="flex items-center gap-2">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <span className="text-2xl font-bold">ScholarScribe</span>
+            <span className="text-2xl font-bold">Nexora</span>
           </Link>
         </div>
         
@@ -80,7 +80,7 @@ export function CustomAppHeader() {
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.user_metadata?.avatar_url || ""} />
-                    <AvatarFallback>{user.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback  className="bg-blue-500 text-white">{user.email?.substring(0, 1).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
