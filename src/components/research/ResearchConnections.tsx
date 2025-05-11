@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import {
   useEdgesState,
   Panel,
   ConnectionLineType,
+  ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { supabase } from '@/integrations/supabase/client';
@@ -97,7 +97,8 @@ const sampleConnections: Connection[] = [
   }
 ];
 
-export function ResearchConnections() {
+// Create a wrapper component for ReactFlowProvider
+const ResearchConnectionsContent = () => {
   // State for researchers and connections
   const [researchers, setResearchers] = useState<Researcher[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -424,5 +425,14 @@ export function ResearchConnections() {
         </div>
       </div>
     </div>
+  );
+};
+
+// Export the wrapped component with ReactFlowProvider
+export function ResearchConnections() {
+  return (
+    <ReactFlowProvider>
+      <ResearchConnectionsContent />
+    </ReactFlowProvider>
   );
 }

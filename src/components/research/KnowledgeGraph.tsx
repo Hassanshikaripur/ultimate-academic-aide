@@ -16,7 +16,8 @@ import {
   Position,
   useReactFlow,
   NodeTypes,
-  EdgeTypes
+  EdgeTypes,
+  ReactFlowProvider
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -80,7 +81,8 @@ const initialEdges: CustomEdge[] = [
   { id: 'e1-3', source: '1', target: '3', label: 'used in' }
 ];
 
-export function KnowledgeGraph() {
+// Create a wrapper component to provide ReactFlowProvider context
+const KnowledgeGraphContent = () => {
   const flowRef = useRef(null);
   const reactFlowInstance = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -785,5 +787,14 @@ export function KnowledgeGraph() {
         </Panel>
       </ReactFlow>
     </Card>
+  );
+};
+
+// Export the wrapped component with ReactFlowProvider
+export function KnowledgeGraph() {
+  return (
+    <ReactFlowProvider>
+      <KnowledgeGraphContent />
+    </ReactFlowProvider>
   );
 }
