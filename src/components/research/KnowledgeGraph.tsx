@@ -14,7 +14,8 @@ import {
   Panel,
   ConnectionLineType,
   Position,
-  useReactFlow
+  useReactFlow,
+  NodeTypes
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -42,8 +43,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 
-// Define the node data interface
-interface NodeData {
+// Define the node data interface with index signature to satisfy Record<string, unknown>
+interface NodeData extends Record<string, unknown> {
   label: string;
   description: string;
 }
@@ -76,7 +77,7 @@ const initialEdges: Edge[] = [
 export function KnowledgeGraph() {
   const flowRef = useRef(null);
   const reactFlowInstance = useReactFlow();
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [nodeName, setNodeName] = useState("");
   const [nodeType, setNodeType] = useState<string>("default");
@@ -241,7 +242,7 @@ export function KnowledgeGraph() {
           id: edge.id,
           source_id: edge.source,
           target_id: edge.target,
-          relationship_type: edge.label,
+          relationship_type: edge.label as string, // Cast to string to handle ReactNode
           animated: edge.animated || false
         });
         
@@ -344,8 +345,8 @@ export function KnowledgeGraph() {
   }, [selectedEdge, setEdges, toast]);
 
   // Handle node selection
-  const onNodeClick = useCallback((event: React.MouseEvent, node: Node<NodeData>) => {
-    setSelectedNode(node);
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node as Node<NodeData>);
   }, []);
 
   // Handle edge selection
