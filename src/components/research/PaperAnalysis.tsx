@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { FileText, Upload, Download, Link, Search, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Paper {
   id: string;
@@ -24,6 +26,7 @@ interface Paper {
   url?: string;
 }
 
+// Sample papers moved to state so we can save to database
 const SAMPLE_PAPERS: Paper[] = [
   {
     id: "1",
@@ -64,16 +67,143 @@ export function PaperAnalysis() {
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("search");
+  const [papers, setPapers] = useState<Paper[]>([]);
+  const [notes, setNotes] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
   
-  const filteredPapers = SAMPLE_PAPERS.filter(paper => 
+  // Load papers from the database
+  useEffect(() => {
+    async function loadPapers() {
+      try {
+        setIsLoading(true);
+        
+        // Try to fetch papers from Supabase
+        const { data, error } = await supabase
+          .from('papers')
+          .select('*');
+        
+        if (error) {
+          throw error;
+        }
+        
+        // If we have papers in the database, use those
+        if (data && data.length > 0) {
+          const formattedPapers = data.map(paper => ({
+            ...paper,
+            authors: Array.isArray(paper.authors) ? paper.authors : JSON.parse(paper.authors),
+            keywords: Array.isArray(paper.keywords) ? paper.keywords : JSON.parse(paper.keywords)
+          }));
+          setPapers(formattedPapers);
+        } else {
+          // If no papers in database, seed with sample papers
+          await seedSamplePapers();
+          setPapers(SAMPLE_PAPERS);
+        }
+      } catch (error) {
+        console.error("Error loading papers:", error);
+        // Fallback to sample data if there's an error
+        setPapers(SAMPLE_PAPERS);
+        toast({
+          title: "Warning",
+          description: "Using sample data - database connection failed.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    loadPapers();
+  }, [toast]);
+  
+  // Seed the database with sample papers if empty
+  async function seedSamplePapers() {
+    try {
+      const samplePapersFormatted = SAMPLE_PAPERS.map(paper => ({
+        ...paper,
+        authors: JSON.stringify(paper.authors),
+        keywords: JSON.stringify(paper.keywords)
+      }));
+      
+      const { error } = await supabase
+        .from('papers')
+        .insert(samplePapersFormatted);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Sample papers loaded into database.",
+      });
+    } catch (error) {
+      console.error("Error seeding papers:", error);
+    }
+  }
+
+  // Save notes for a paper
+  const saveNotes = async () => {
+    if (!selectedPaper) return;
+    
+    try {
+      // Update notes in database
+      const { error } = await supabase
+        .from('paper_notes')
+        .upsert({ 
+          paper_id: selectedPaper.id,
+          notes: notes 
+        });
+        
+      if (error) throw error;
+        
+      toast({
+        title: "Success",
+        description: "Notes saved successfully"
+      });
+    } catch (error) {
+      console.error("Error saving notes:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save notes. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Load notes for a paper
+  const loadPaperNotes = async (paperId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('paper_notes')
+        .select('notes')
+        .eq('paper_id', paperId)
+        .single();
+        
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+        throw error;
+      }
+        
+      if (data) {
+        setNotes(data.notes);
+      } else {
+        setNotes(""); // Reset notes if none found
+      }
+    } catch (error) {
+      console.error("Error loading notes:", error);
+      setNotes("");
+    }
+  };
+
+  const filteredPapers = papers.filter(paper => 
     paper.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     paper.authors.some(author => author.toLowerCase().includes(searchTerm.toLowerCase())) ||
     paper.abstract.toLowerCase().includes(searchTerm.toLowerCase()) ||
     paper.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const handleSelectPaper = (paper: Paper) => {
+  const handleSelectPaper = async (paper: Paper) => {
     setSelectedPaper(paper);
+    await loadPaperNotes(paper.id);
     setActiveTab("analysis");
   };
 
@@ -101,44 +231,60 @@ export function PaperAnalysis() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {filteredPapers.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">No papers found matching your search criteria.</p>
-                  ) : (
-                    filteredPapers.map(paper => (
-                      <Card 
-                        key={paper.id} 
-                        className="cursor-pointer hover:border-primary transition-colors"
-                        onClick={() => handleSelectPaper(paper)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-serif font-medium">{paper.title}</h3>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {paper.authors.join(", ")} • {paper.year} • {paper.journal}
-                              </p>
+                {isLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredPapers.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">No papers found matching your search criteria.</p>
+                    ) : (
+                      filteredPapers.map(paper => (
+                        <Card 
+                          key={paper.id} 
+                          className="cursor-pointer hover:border-primary transition-colors"
+                          onClick={() => handleSelectPaper(paper)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-serif font-medium">{paper.title}</h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {paper.authors.join(", ")} • {paper.year} • {paper.journal}
+                                </p>
+                              </div>
+                              {paper.url && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="mt-1"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(paper.url, '_blank');
+                                  }}
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
-                            <Button variant="ghost" size="sm" className="mt-1">
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <p className="text-sm mt-3 line-clamp-2">{paper.abstract}</p>
-                          <div className="flex flex-wrap gap-1 mt-3">
-                            {paper.keywords.map(keyword => (
-                              <span 
-                                key={keyword} 
-                                className="px-2 py-0.5 bg-muted rounded-full text-xs"
-                              >
-                                {keyword}
-                              </span>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
-                </div>
+                            <p className="text-sm mt-3 line-clamp-2">{paper.abstract}</p>
+                            <div className="flex flex-wrap gap-1 mt-3">
+                              {paper.keywords.map(keyword => (
+                                <span 
+                                  key={keyword} 
+                                  className="px-2 py-0.5 bg-muted rounded-full text-xs"
+                                >
+                                  {keyword}
+                                </span>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -235,8 +381,13 @@ export function PaperAnalysis() {
                         
                         <div>
                           <h4 className="text-sm font-medium mb-1">Analysis Notes</h4>
-                          <Textarea placeholder="Add your notes about this paper..." className="min-h-[100px]" />
-                          <Button size="sm" className="mt-2">Save Notes</Button>
+                          <Textarea 
+                            placeholder="Add your notes about this paper..." 
+                            className="min-h-[100px]" 
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                          />
+                          <Button size="sm" className="mt-2" onClick={saveNotes}>Save Notes</Button>
                         </div>
                       </div>
                     </div>
@@ -277,7 +428,18 @@ export function PaperAnalysis() {
                     <code className="text-xs bg-muted px-2 py-1 rounded flex-1">
                       {selectedPaper.doi}
                     </code>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        if (selectedPaper?.doi) {
+                          navigator.clipboard.writeText(selectedPaper.doi);
+                          toast({
+                            description: "DOI copied to clipboard",
+                          });
+                        }
+                      }}
+                    >
                       <Link className="h-4 w-4" />
                     </Button>
                   </div>
@@ -294,7 +456,7 @@ export function PaperAnalysis() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {SAMPLE_PAPERS
+                {papers
                   .filter(paper => paper.id !== selectedPaper.id)
                   .slice(0, 2)
                   .map(paper => (

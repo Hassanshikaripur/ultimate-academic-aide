@@ -98,7 +98,6 @@ export function AIInsightsPanel({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="h-8 text-sm"
-                prefix={<Search className="h-4 w-4 text-muted-foreground" />}
               />
               <Button 
                 variant="ghost" 
