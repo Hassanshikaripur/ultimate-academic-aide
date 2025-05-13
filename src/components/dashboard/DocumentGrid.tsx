@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Folder, File, FileText, Plus, Clock, Trash, Edit, Book, FilePlus } from "lucide-react";
+import { formatDocumentContent } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -122,8 +122,13 @@ export function DocumentGrid() {
   }
 
   function truncateText(text: string, maxLength = 100) {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    if (!text) return "No content yet";
+    
+    // Format the document content first
+    const formattedText = formatDocumentContent(text);
+    
+    if (formattedText.length <= maxLength) return formattedText;
+    return formattedText.substring(0, maxLength) + '...';
   }
 
   const handleDeleteClick = (e: React.MouseEvent, id: string) => {
@@ -222,7 +227,7 @@ export function DocumentGrid() {
             <Link key={doc.id} to={`/document/${doc.id}`} className="block group">
               <Card className="h-full overflow-hidden hover:border-primary transition-colors">
                 <CardHeader className="pb-2">
-                  <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors flex items-center justify-between">{doc.title}{<File className="inline-block mb-2" />}</CardTitle>
+                  <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors flex items-center justify-between">{doc.title || "Untitled Document"}{<File className="inline-block mb-2" />}</CardTitle>
                   <CardDescription className="flex items-center gap-1 text-xs">
                     <Clock size={12} />
                     Updated {formatDate(doc.updated_at)}
@@ -230,7 +235,7 @@ export function DocumentGrid() {
                 </CardHeader>
                 <CardContent className="pb-2">
                   <p className="text-sm text-muted-foreground line-clamp-3">
-                    {doc.content ? truncateText(doc.content, 150) : "No content yet"}
+                    {truncateText(doc.content, 150)}
                   </p>
                 </CardContent>
                 <CardFooter>
