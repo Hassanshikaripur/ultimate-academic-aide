@@ -1,10 +1,10 @@
+
 import { useRef, useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Separator } from "@/components/ui/separator";
 import { InsightProps } from "@/components/research/AIInsightsPanel";
 
 interface RichTextEditorProps {
@@ -34,26 +34,15 @@ export function RichTextEditor({
         // Get current selection or use the end of the document
         const range = quill.getSelection() || { index: quill.getText().length, length: 0 };
         
-        // Process the aiContent to properly format it and handle any HTML tags
-        const processedContent = aiContent
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/\n/g, "<br />");
+        // Process the content to properly format it
+        // Remove "AI Generated" text if present
+        let processedContent = aiContent.replace(/AI Generated/g, "").trim();
         
-        // Format AI content with some styling
-        const formattedContent = `
-          <div class="ai-content-block">
-            <div class="ai-content-header">
-              <span class="ai-label">AI Generated</span>
-            </div>
-            <div class="ai-content-body">
-              ${processedContent}
-            </div>
-          </div>
-        `;
+        // Apply formatting to improve readability
+        processedContent = formatContentWithMarkdown(processedContent);
         
-        // Insert formatted content
-        quill.clipboard.dangerouslyPasteHTML(range.index, formattedContent);
+        // Insert formatted content at current position
+        quill.clipboard.dangerouslyPasteHTML(range.index, processedContent);
         
         // Update state to track that we've processed this content
         setPreviousAiContent(aiContent);
@@ -63,6 +52,32 @@ export function RichTextEditor({
       }
     }
   }, [aiContent, applyAIContent]);
+
+  // Format content to improve readability with proper structure
+  const formatContentWithMarkdown = (text: string) => {
+    // Replace line breaks with HTML paragraph tags
+    let formatted = text.replace(/\n\n/g, '</p><p>');
+    
+    // Format headings (if text has patterns like "Title:" or "Summary:")
+    formatted = formatted.replace(/^([\w\s]+):\s*(.+)$/gm, '<h3>$1</h3><p>$2</p>');
+    
+    // Format lists if they exist
+    formatted = formatted.replace(/^\s*[\-\*]\s+(.+)$/gm, '<li>$1</li>');
+    formatted = formatted.replace(/(<li>.+<\/li>\s*)+/g, '<ul>$&</ul>');
+    
+    // Fix any double paragraph tags
+    formatted = formatted.replace(/<\/p>\s*<p>/g, '</p><p>');
+    
+    // Ensure the content starts and ends with paragraph tags
+    if (!formatted.startsWith('<h') && !formatted.startsWith('<p>')) {
+      formatted = '<p>' + formatted;
+    }
+    if (!formatted.endsWith('</p>') && !formatted.endsWith('</ul>')) {
+      formatted += '</p>';
+    }
+    
+    return formatted;
+  };
 
   const handleChange = (value: string) => {
     setContent(value);
@@ -121,37 +136,40 @@ export function RichTextEditor({
       
       <style>
         {`
-          .ai-content-block {
-            background-color: rgba(139, 92, 246, 0.05);
-            border-left: 3px solid #8b5cf6;
-            padding: 16px;
-            margin: 16px 0;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-          }
-          .ai-content-header {
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-          }
-          .ai-label {
-            color: #8b5cf6;
-            font-weight: 500;
-            font-size: 0.9rem;
-            background-color: rgba(139, 92, 246, 0.1);
-            padding: 2px 8px;
-            border-radius: 4px;
-          }
-          .ai-content-body {
-            color: #1f2937;
-            line-height: 1.7;
-          }
           .ql-editor {
             min-height: 400px;
             font-size: 16px;
             line-height: 1.7;
             color: #1f2937;
             padding: 16px 20px;
+          }
+          .ql-editor h1 {
+            font-size: 1.8em;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+            font-weight: 600;
+          }
+          .ql-editor h2 {
+            font-size: 1.5em;
+            margin-top: 1.3em;
+            margin-bottom: 0.7em;
+            font-weight: 600;
+          }
+          .ql-editor h3 {
+            font-size: 1.3em;
+            margin-top: 1.2em;
+            margin-bottom: 0.6em;
+            font-weight: 600;
+          }
+          .ql-editor p {
+            margin-bottom: 1em;
+          }
+          .ql-editor ul {
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+          }
+          .ql-editor li {
+            margin-bottom: 0.5em;
           }
           .ql-toolbar {
             border-top-left-radius: 6px;

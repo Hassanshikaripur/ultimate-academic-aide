@@ -263,6 +263,14 @@ export function AppSidebar() {
           </div>
         </div>
       </div>
+      
+      {/* This is the gap element that pushes content when sidebar is expanded */}
+      <div 
+        className={cn(
+          "hidden md:block flex-none transition-all duration-300",
+          collapsed ? "w-16" : "w-64"
+        )}
+      />
     </>
   );
 }
