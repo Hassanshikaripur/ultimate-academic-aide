@@ -30,7 +30,7 @@ const Index = () => {
     <div className="min-h-screen flex bg-background">
       <AppSidebar />
       
-      <div className="flex-1 transition-all duration-300">
+      <div className={`flex-1 transition-all duration-300 w-full`}>
         <CustomAppHeader />
         <main className="container mx-auto py-6 px-4">
           <DocumentGrid isAuthenticated={isAuthenticated} isLoading={isLoading} />

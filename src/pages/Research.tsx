@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Download, Save, Share2, Upload } from "lucide-react";
+import { Download, Save, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Dialog, 
@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ReactFlowProvider } from "@xyflow/react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const Research = () => {
   const [activeTab, setActiveTab] = useState("knowledge-graph");
@@ -30,6 +31,7 @@ const Research = () => {
   const [exportFormat, setExportFormat] = useState("json");
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const { state } = useSidebar();
   
   // Check if database tables exist
   useEffect(() => {
@@ -143,18 +145,18 @@ const Research = () => {
     <div className="min-h-screen flex bg-background">
       <AppSidebar />
       
-      <div className="flex-1 ml-0 md:ml-64">
+      <div className="flex-1 transition-all duration-300 w-full">
         <CustomAppHeader />
         <main className="container mx-auto py-6 px-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 md:gap-0">
-              <TabsList>
+              <TabsList className="flex flex-wrap">
                 <TabsTrigger value="knowledge-graph">Knowledge Graph</TabsTrigger>
                 <TabsTrigger value="paper-analysis">Paper Analysis</TabsTrigger>
                 <TabsTrigger value="connections">Research Connections</TabsTrigger>
               </TabsList>
               
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -175,7 +177,7 @@ const Research = () => {
                       Share
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Share Research</DialogTitle>
                       <DialogDescription>
@@ -205,15 +207,21 @@ const Research = () => {
                       
                       <div>
                         <label className="text-sm font-medium">Sharing Options</label>
-                        <div className="mt-2 flex items-center gap-2">
-                          <input type="radio" id="view" name="permission" defaultChecked />
-                          <label htmlFor="view" className="text-sm">View only</label>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <input type="radio" id="view" name="permission" defaultChecked />
+                            <label htmlFor="view" className="text-sm">View only</label>
+                          </div>
                           
-                          <input type="radio" id="comment" name="permission" className="ml-4" />
-                          <label htmlFor="comment" className="text-sm">Can comment</label>
+                          <div className="flex items-center gap-2">
+                            <input type="radio" id="comment" name="permission" className="ml-1" />
+                            <label htmlFor="comment" className="text-sm">Can comment</label>
+                          </div>
                           
-                          <input type="radio" id="edit" name="permission" className="ml-4" />
-                          <label htmlFor="edit" className="text-sm">Can edit</label>
+                          <div className="flex items-center gap-2">
+                            <input type="radio" id="edit" name="permission" className="ml-1" />
+                            <label htmlFor="edit" className="text-sm">Can edit</label>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -233,7 +241,7 @@ const Research = () => {
                       Export
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Export Research Data</DialogTitle>
                       <DialogDescription>
@@ -244,45 +252,51 @@ const Research = () => {
                     <div className="grid gap-4 py-4">
                       <div>
                         <label className="text-sm font-medium">Export Format</label>
-                        <div className="mt-2 flex items-center gap-2">
-                          <input 
-                            type="radio" 
-                            id="json" 
-                            name="format" 
-                            value="json"
-                            checked={exportFormat === "json"}
-                            onChange={() => setExportFormat("json")}
-                          />
-                          <label htmlFor="json" className="text-sm">JSON</label>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="radio" 
+                              id="json" 
+                              name="format" 
+                              value="json"
+                              checked={exportFormat === "json"}
+                              onChange={() => setExportFormat("json")}
+                            />
+                            <label htmlFor="json" className="text-sm">JSON</label>
+                          </div>
                           
-                          <input 
-                            type="radio" 
-                            id="csv" 
-                            name="format" 
-                            value="csv" 
-                            className="ml-4"
-                            checked={exportFormat === "csv"}
-                            onChange={() => setExportFormat("csv")}
-                          />
-                          <label htmlFor="csv" className="text-sm">CSV</label>
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="radio" 
+                              id="csv" 
+                              name="format" 
+                              value="csv" 
+                              className="ml-1"
+                              checked={exportFormat === "csv"}
+                              onChange={() => setExportFormat("csv")}
+                            />
+                            <label htmlFor="csv" className="text-sm">CSV</label>
+                          </div>
                           
-                          <input 
-                            type="radio" 
-                            id="pdf" 
-                            name="format" 
-                            value="pdf" 
-                            className="ml-4"
-                            checked={exportFormat === "pdf"}
-                            onChange={() => setExportFormat("pdf")}
-                            disabled
-                          />
-                          <label htmlFor="pdf" className="text-sm text-muted-foreground">PDF (Coming soon)</label>
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="radio" 
+                              id="pdf" 
+                              name="format" 
+                              value="pdf" 
+                              className="ml-1"
+                              checked={exportFormat === "pdf"}
+                              onChange={() => setExportFormat("pdf")}
+                              disabled
+                            />
+                            <label htmlFor="pdf" className="text-sm text-muted-foreground">PDF (Coming soon)</label>
+                          </div>
                         </div>
                       </div>
                       
                       <div>
                         <label className="text-sm font-medium">Include</label>
-                        <div className="mt-2 grid grid-cols-2 gap-2">
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div className="flex items-center">
                             <input type="checkbox" id="graphs" defaultChecked />
                             <label htmlFor="graphs" className="text-sm ml-2">Knowledge Graphs</label>

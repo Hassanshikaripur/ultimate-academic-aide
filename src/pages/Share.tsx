@@ -1,3 +1,4 @@
+
 import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,9 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Copy, Mail, Users, Link } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const Share = () => {
   const { toast } = useToast();
+  const { state } = useSidebar();
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText("https://researchmind.app/share/abc123");
@@ -30,7 +33,7 @@ const Share = () => {
     <div className="min-h-screen flex bg-background">
       <AppSidebar />
       
-      <div className="flex-1 ml-0 md:ml-64">
+      <div className="flex-1 transition-all duration-300 w-full">
         <CustomAppHeader />
         <main className="container mx-auto py-6 px-4">
           <div className="space-y-6">
@@ -55,8 +58,8 @@ const Share = () => {
                 
                 <div className="space-y-2">
                   <Label>Invite by Email</Label>
-                  <div className="flex gap-2">
-                    <Input placeholder="colleague@university.edu" />
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input placeholder="colleague@university.edu" className="flex-grow" />
                     <Button variant="outline" onClick={handleInvite}>
                       <Mail className="mr-2 h-4 w-4" />
                       Invite
@@ -67,7 +70,7 @@ const Share = () => {
                 <div className="space-y-4 border-t pt-4">
                   <h3 className="text-lg font-medium">Sharing Permissions</h3>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="space-y-0.5">
                       <Label htmlFor="allow-view">Allow Viewing</Label>
                       <p className="text-sm text-muted-foreground">
@@ -77,7 +80,7 @@ const Share = () => {
                     <Switch id="allow-view" defaultChecked />
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="space-y-0.5">
                       <Label htmlFor="allow-edit">Allow Editing</Label>
                       <p className="text-sm text-muted-foreground">
@@ -87,7 +90,7 @@ const Share = () => {
                     <Switch id="allow-edit" />
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="space-y-0.5">
                       <Label htmlFor="allow-citation">Allow Citation Export</Label>
                       <p className="text-sm text-muted-foreground">
@@ -98,7 +101,7 @@ const Share = () => {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between border-t pt-6">
+              <CardFooter className="flex flex-col sm:flex-row justify-between border-t pt-6 gap-4">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Users className="mr-2 h-4 w-4" />
                   No active collaborators
@@ -118,7 +121,7 @@ const Share = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Button variant="outline" className="h-auto py-6 flex flex-col">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                       <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -121,7 +121,7 @@ export function AppSidebar() {
 
   return (
     <>
-      {/* Mobile menu button */}
+      {/* Mobile menu button - fixed position outside the sidebar */}
       <Button
         variant="ghost"
         size="icon"
@@ -140,7 +140,7 @@ export function AppSidebar() {
       )}
 
       {/* Sidebar */}
-      <div 
+      <aside 
         className={cn(
           "fixed top-0 left-0 z-40 h-full bg-card border-r transition-all duration-300 ease-in-out",
           collapsed ? "w-16" : "w-64",
@@ -170,7 +170,7 @@ export function AppSidebar() {
           </div>
 
           {/* Nav links */}
-          <div className="flex-grow overflow-y-auto py-4">
+          <div className="flex-grow overflow-y-auto py-4 no-scrollbar">
             <ul className="space-y-2 px-2">
               {navigation.map((item) => {
                 const isActive = location.pathname === item.href || 
@@ -224,7 +224,7 @@ export function AppSidebar() {
             <div className={cn("flex", collapsed ? "justify-center" : "justify-between items-center")}>
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-9 h-9 rounded-full bg-research-600 flex items-center justify-center text-white">
+                  <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white">
                     <User size={18} />
                   </div>
                 </div>
@@ -262,7 +262,7 @@ export function AppSidebar() {
             )}
           </div>
         </div>
-      </div>
+      </aside>
       
       {/* This is the gap element that pushes content when sidebar is expanded */}
       <div 

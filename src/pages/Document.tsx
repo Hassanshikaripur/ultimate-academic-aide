@@ -6,6 +6,7 @@ import { DocumentEditor } from "@/components/document/DocumentEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const Document = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,8 @@ const Document = () => {
     content: string;
   } | null>(null);
   const { toast } = useToast();
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
   
   useEffect(() => {
     async function checkAuth() {
@@ -165,7 +168,7 @@ const Document = () => {
     <div className="min-h-screen flex bg-background">
       <AppSidebar />
       
-      <div className="flex-1 ml-0 md:ml-64">
+      <div className="flex-1 transition-all duration-300 w-full">
         <CustomAppHeader />
         <main className="w-full">
           {loading ? (

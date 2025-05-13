@@ -1,3 +1,4 @@
+
 import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 import AppSidebar from "@/components/layout/AppSidebar";
 import { Button } from "@/components/ui/button";
@@ -7,9 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const Settings = () => {
   const { toast } = useToast();
+  const { state } = useSidebar();
 
   const handleSave = () => {
     toast({
@@ -22,12 +25,12 @@ const Settings = () => {
     <div className="min-h-screen flex bg-background">
       <AppSidebar />
       
-      <div className="flex-1 ml-0 md:ml-64">
+      <div className="flex-1 transition-all duration-300 w-full">
         <CustomAppHeader />
         <main className="container mx-auto py-6 px-4">
           <div className="space-y-6">
             <Tabs defaultValue="general">
-              <TabsList className="mb-6">
+              <TabsList className="mb-6 flex flex-wrap">
                 <TabsTrigger value="general">General</TabsTrigger>
                 <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>
                 <TabsTrigger value="citations">Citations</TabsTrigger>
