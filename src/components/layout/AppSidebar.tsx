@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   File,
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useSidebar } from "@/components/ui/sidebar";
 
 type NavigationItem = {
   name: string;
@@ -34,18 +35,30 @@ const navigation: NavigationItem[] = [
 ];
 
 export function AppSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const { state, setOpen } = useSidebar();
+  const collapsed = state === "collapsed";
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Sync the sidebar state with our local state
+  useEffect(() => {
+    if (!isMobile) {
+      setOpen(state === "expanded");
+    }
+  }, [state, isMobile, setOpen]);
+  
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
     if (isMobile) {
       document.body.style.overflow = !sidebarOpen ? "hidden" : "auto";
     }
+  };
+
+  const toggleCollapsed = () => {
+    setOpen(!collapsed);
   };
 
   const handleLogout = async () => {
@@ -150,7 +163,7 @@ export function AppSidebar() {
                 "hidden md:flex",
                 collapsed && "mx-auto"
               )}
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={toggleCollapsed}
             >
               {collapsed ? <Menu size={20} /> : <X size={20} />}
             </Button>
