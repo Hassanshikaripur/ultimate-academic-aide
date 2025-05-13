@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,26 +25,22 @@ interface Document {
   updated_at: string;
 }
 
-export function DocumentGrid() {
+interface DocumentGridProps {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
+
+export function DocumentGrid({ isAuthenticated, isLoading }: DocumentGridProps) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function checkAuth() {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
-      return !!user;
-    }
-
     async function fetchDocuments() {
-      const authenticated = await checkAuth();
-      
-      if (!authenticated) {
+      if (!isAuthenticated) {
         setLoading(false);
         return;
       }
@@ -71,8 +68,11 @@ export function DocumentGrid() {
       }
     }
 
-    fetchDocuments();
-  }, [toast]);
+    // Only fetch documents once we know the authentication state
+    if (!isLoading) {
+      fetchDocuments();
+    }
+  }, [toast, isAuthenticated, isLoading]);
 
   async function handleCreateDocument() {
     if (!isAuthenticated) {
@@ -167,7 +167,8 @@ export function DocumentGrid() {
     }
   };
 
-  if (loading) {
+  // Show loading state while determining authentication
+  if (isLoading || loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-12rem)]">
         <div className="text-center">
@@ -178,6 +179,7 @@ export function DocumentGrid() {
     );
   }
 
+  // Show sign in prompt if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-center justify-center space-y-4 py-12">
@@ -196,6 +198,7 @@ export function DocumentGrid() {
     );
   }
 
+  // Show documents or empty state
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
