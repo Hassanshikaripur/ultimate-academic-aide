@@ -1,13 +1,10 @@
 
 import { DocumentGrid } from "@/components/dashboard/DocumentGrid";
-import AppSidebar from "@/components/layout/AppSidebar";
-import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
-import { useSidebar } from "@/components/ui/sidebar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const { state } = useSidebar();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
@@ -27,16 +24,10 @@ const Index = () => {
   }, []);
   
   return (
-    <div className="min-h-screen flex bg-background">
-      <AppSidebar />
-      
-      <div className={`flex-1 transition-all duration-300 w-full`}>
-        <CustomAppHeader />
-        <main className="container mx-auto py-6 px-4">
-          <DocumentGrid isAuthenticated={isAuthenticated} isLoading={isLoading} />
-        </main>
-      </div>
-    </div>
+    <DashboardLayout>
+      <h1 className="text-3xl font-bold mb-6">My Documents</h1>
+      <DocumentGrid isAuthenticated={isAuthenticated} isLoading={isLoading} />
+    </DashboardLayout>
   );
 };
 

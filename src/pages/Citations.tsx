@@ -1,24 +1,13 @@
 
-import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
-import AppSidebar from "@/components/layout/AppSidebar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { CitationManager } from "@/components/citations/CitationManager";
-import { useSidebar } from "@/components/ui/sidebar";
 
 const Citations = () => {
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
-
   return (
-    <div className="min-h-screen flex bg-background">
-      <AppSidebar />
-      
-      <div className="flex-1 transition-all duration-300 w-full">
-        <CustomAppHeader />
-        <main className="container mx-auto py-6 px-4">
-          <CitationManager />
-        </main>
-      </div>
-    </div>
+    <DashboardLayout>
+      <h1 className="text-3xl font-bold mb-6">Citations</h1>
+      <CitationManager />
+    </DashboardLayout>
   );
 };
 

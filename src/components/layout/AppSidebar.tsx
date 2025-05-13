@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   File,
   Search,
@@ -121,7 +121,7 @@ export function AppSidebar() {
 
   return (
     <>
-      {/* Mobile menu button - fixed position outside the sidebar */}
+      {/* Mobile menu button - shown only on mobile */}
       <Button
         variant="ghost"
         size="icon"
@@ -136,13 +136,13 @@ export function AppSidebar() {
         <div 
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
           onClick={toggleSidebar}
-        ></div>
+        />
       )}
 
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed top-0 left-0 z-40 h-full bg-card border-r transition-all duration-300 ease-in-out",
+          "fixed top-0 left-0 z-40 h-screen bg-card border-r transition-all duration-300 ease-in-out",
           collapsed ? "w-16" : "w-64",
           isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"
         )}
@@ -151,9 +151,9 @@ export function AppSidebar() {
           {/* Logo */}
           <div className="flex items-center justify-between p-4 border-b">
             {!collapsed && (
-              <Link to="/dashboard" className="flex items-center">
+              <NavLink to="/dashboard" className="flex items-center">
                 <span className="text-xl font-serif font-bold text-primary">Nexora</span>
-              </Link>
+              </NavLink>
             )}
             
             <Button
@@ -178,27 +178,21 @@ export function AppSidebar() {
                   
                 return (
                   <li key={item.name}>
-                    <Link
+                    <NavLink
                       to={item.href}
-                      className={cn(
+                      className={({ isActive }) => cn(
                         "flex items-center p-2 rounded-lg hover:bg-accent group transition-all",
-                        isActive && "bg-accent",
+                        isActive ? "bg-accent text-foreground font-medium" : "text-muted-foreground",
                         collapsed ? "justify-center" : "justify-start"
                       )}
                     >
-                      <item.icon size={20} className={cn(
-                        "text-muted-foreground",
-                        isActive && "text-foreground"
-                      )} />
+                      <item.icon size={20} />
                       {!collapsed && (
-                        <span className={cn(
-                          "ml-3 text-sm font-medium",
-                          isActive && "font-semibold"
-                        )}>
+                        <span className="ml-3 text-sm">
                           {item.name}
                         </span>
                       )}
-                    </Link>
+                    </NavLink>
                   </li>
                 );
               })}
