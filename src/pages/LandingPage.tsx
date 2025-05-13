@@ -28,7 +28,7 @@ const LandingPage = () => {
       <div className="relative z-10 container mx-auto px-8 pt-4">
         <nav className="flex items-center justify-between py-6">
           <div className="flex items-center gap-2">
-            <img className="h-10 w-10" src="../public/logo.png" alt="logo" />
+            <img className="h-10 w-10" src="/logo.png" alt="logo" />
             <span className="text-4xl font-bold text-primary">
               Nextra
             </span>
@@ -46,7 +46,7 @@ const LandingPage = () => {
               <span className="text-primary">Not Harder</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground">
-            <span className="text-secondary font-bold" >Nexora</span> an AI-powered research assistant that helps college students find, analyze, and cite sources in seconds.
+            <span className="text-secondary font-bold" >Nextra</span> an AI-powered research assistant that helps college students find, analyze, and cite sources in seconds.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <AuthDialog

@@ -69,7 +69,7 @@ export function CustomAppHeader() {
       <div className="container flex h-full items-center justify-between">
         <div className="flex items-center gap-2">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <span className="text-2xl font-bold">Nexora</span>
+            <span className="text-2xl font-bold">Nextra</span>
           </Link>
         </div>
         
