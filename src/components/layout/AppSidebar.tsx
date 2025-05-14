@@ -43,7 +43,6 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Sync the sidebar state with our local state
   useEffect(() => {
     if (!isMobile) {
       setOpen(state === "expanded");
@@ -121,7 +120,7 @@ export function AppSidebar() {
 
   return (
     <>
-      {/* Mobile menu button - shown only on mobile */}
+      {/* Mobile menu button */}
       <Button
         variant="ghost"
         size="icon"
@@ -142,9 +141,9 @@ export function AppSidebar() {
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen bg-card border-r transition-all duration-300 ease-in-out",
+          "fixed md:sticky md:top-0 md:left-0 z-40 h-screen bg-card border-r transition-all duration-300 ease-in-out",
           collapsed ? "w-16" : "w-64",
-          isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"
+          isMobile ? (sidebarOpen ? "left-0" : "-left-full") : "left-0"
         )}
       >
         <div className="flex flex-col h-full">
@@ -152,7 +151,7 @@ export function AppSidebar() {
           <div className="flex items-center justify-between p-4 border-b">
             {!collapsed && (
               <NavLink to="/dashboard" className="flex items-center">
-                <span className="text-xl font-serif font-bold text-primary">Nexora</span>
+                <span className="text-xl font-serif font-bold text-primary">Nextra</span>
               </NavLink>
             )}
             
@@ -185,8 +184,9 @@ export function AppSidebar() {
                         isActive ? "bg-accent text-foreground font-medium" : "text-muted-foreground",
                         collapsed ? "justify-center" : "justify-start"
                       )}
+                      onClick={() => isMobile && setSidebarOpen(false)}
                     >
-                      <item.icon size={20} />
+                      <item.icon size={20} className="flex-shrink-0" />
                       {!collapsed && (
                         <span className="ml-3 text-sm">
                           {item.name}
@@ -257,14 +257,6 @@ export function AppSidebar() {
           </div>
         </div>
       </aside>
-      
-      {/* This is the gap element that pushes content when sidebar is expanded */}
-      <div 
-        className={cn(
-          "hidden md:block flex-none transition-all duration-300",
-          collapsed ? "w-16" : "w-64"
-        )}
-      />
     </>
   );
 }

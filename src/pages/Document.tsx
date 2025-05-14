@@ -5,6 +5,7 @@ import { DocumentEditor } from "@/components/document/DocumentEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Document = () => {
   const { id } = useParams<{ id: string }>();
@@ -170,13 +171,17 @@ const Document = () => {
           </div>
         </div>
       ) : (
-        <DocumentEditor 
-          initialTitle={documentData?.title || "Untitled Document"} 
-          initialContent={documentData?.content || ""} 
-          onSave={handleSave}
-          onSaveInsight={handleSaveInsight}
-          documentId={id}
-        />
+        <Card className="border-0 shadow-none">
+          <CardContent className="p-0">
+            <DocumentEditor 
+              initialTitle={documentData?.title || "Untitled Document"} 
+              initialContent={documentData?.content || ""} 
+              onSave={handleSave}
+              onSaveInsight={handleSaveInsight}
+              documentId={id}
+            />
+          </CardContent>
+        </Card>
       )}
     </DashboardLayout>
   );

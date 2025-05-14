@@ -42,7 +42,7 @@ const Share = () => {
             <div className="space-y-2">
               <Label>Share Link</Label>
               <div className="flex gap-2">
-                <Input readOnly value="https://researchmind.app/share/abc123" />
+                <Input readOnly value="https://researchmind.app/share/abc123" className="flex-1" />
                 <Button variant="outline" size="icon" onClick={handleCopyLink}>
                   <Copy className="h-4 w-4" />
                 </Button>
@@ -53,8 +53,8 @@ const Share = () => {
             <div className="space-y-2">
               <Label>Invite by Email</Label>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Input placeholder="colleague@university.edu" className="flex-grow" />
-                <Button variant="outline" onClick={handleInvite}>
+                <Input placeholder="colleague@university.edu" className="flex-1" />
+                <Button variant="outline" onClick={handleInvite} className="sm:whitespace-nowrap">
                   <Mail className="mr-2 h-4 w-4" />
                   Invite
                 </Button>

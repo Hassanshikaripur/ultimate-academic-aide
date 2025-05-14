@@ -21,7 +21,7 @@ export function CustomAppHeader() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener first
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
       
@@ -66,9 +66,9 @@ export function CustomAppHeader() {
 
   return (
     <header className="sticky top-0 z-30 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-full items-center justify-between">
+      <div className="container mx-auto h-full px-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link to="/dashboard" className="flex items-center gap-2">
+          <Link to="/dashboard" className="hidden md:flex items-center gap-2">
             <span className="text-2xl font-bold">Nextra</span>
           </Link>
         </div>
@@ -79,8 +79,10 @@ export function CustomAppHeader() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata?.avatar_url || ""} />
-                    <AvatarFallback  className="bg-blue-500 text-white">{user.email?.substring(0, 1).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src={user.user_metadata?.avatar_url || ""} alt="User avatar" />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {user.email?.substring(0, 1).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>

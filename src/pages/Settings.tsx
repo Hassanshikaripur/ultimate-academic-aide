@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +23,8 @@ const Settings = () => {
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Settings</h1>
         
-        <Tabs defaultValue="general">
-          <TabsList className="mb-6">
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="mb-6 w-full sm:w-auto flex flex-wrap">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>
             <TabsTrigger value="citations">Citations</TabsTrigger>
@@ -79,7 +80,7 @@ const Settings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <Label htmlFor="ai-suggestions">AI Suggestions</Label>
                     <p className="text-sm text-muted-foreground">
@@ -89,7 +90,7 @@ const Settings = () => {
                   <Switch id="ai-suggestions" defaultChecked />
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <Label htmlFor="ai-summarization">Automatic Summarization</Label>
                     <p className="text-sm text-muted-foreground">
@@ -99,7 +100,7 @@ const Settings = () => {
                   <Switch id="ai-summarization" defaultChecked />
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <Label htmlFor="knowledge-graph">Knowledge Graph Updates</Label>
                     <p className="text-sm text-muted-foreground">
@@ -128,7 +129,7 @@ const Settings = () => {
                   <Label htmlFor="default-style">Default Citation Style</Label>
                   <select 
                     id="default-style"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <option>APA 7th Edition</option>
                     <option>MLA 9th Edition</option>
@@ -139,7 +140,7 @@ const Settings = () => {
                   </select>
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <Label htmlFor="auto-cite">Automatic Citation</Label>
                     <p className="text-sm text-muted-foreground">
@@ -149,7 +150,7 @@ const Settings = () => {
                   <Switch id="auto-cite" defaultChecked />
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <Label htmlFor="ref-manager">Use Reference Manager</Label>
                     <p className="text-sm text-muted-foreground">

@@ -1,12 +1,20 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { CitationManager } from "@/components/citations/CitationManager";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Citations = () => {
   return (
     <DashboardLayout>
-      <h1 className="text-3xl font-bold mb-6">Citations</h1>
-      <CitationManager />
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Citations</h1>
+        
+        <Card>
+          <CardContent className="p-5">
+            <CitationManager />
+          </CardContent>
+        </Card>
+      </div>
     </DashboardLayout>
   );
 };
