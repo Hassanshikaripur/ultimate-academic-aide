@@ -7,9 +7,9 @@ const Citations = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Citations</h1>
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Citations</h1>
         
-        <Card>
+        <Card className="glass-card">
           <CardContent className="p-5">
             <CitationManager />
           </CardContent>

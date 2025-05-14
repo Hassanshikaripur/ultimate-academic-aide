@@ -65,11 +65,11 @@ export function CustomAppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-30 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-30 h-16 border-b border-border/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container mx-auto h-full px-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link to="/dashboard" className="hidden md:flex items-center gap-2">
-            <span className="text-2xl font-bold">Nextra</span>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Nextra</span>
           </Link>
         </div>
         
@@ -78,7 +78,7 @@ export function CustomAppHeader() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                     <AvatarImage src={user.user_metadata?.avatar_url || ""} alt="User avatar" />
                     <AvatarFallback className="bg-primary text-primary-foreground">
                       {user.email?.substring(0, 1).toUpperCase()}
@@ -107,7 +107,7 @@ export function CustomAppHeader() {
                 <DropdownMenuItem asChild>
                   <Link to="/settings">Settings</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
                   Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>

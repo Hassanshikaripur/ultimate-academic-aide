@@ -171,7 +171,7 @@ const Document = () => {
           </div>
         </div>
       ) : (
-        <Card className="border-0 shadow-none">
+        <Card className="glass-card border-0 shadow-none">
           <CardContent className="p-0">
             <DocumentEditor 
               initialTitle={documentData?.title || "Untitled Document"} 

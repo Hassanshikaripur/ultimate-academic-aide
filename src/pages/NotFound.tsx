@@ -14,15 +14,15 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-card p-4">
+      <div className="bg-card border border-border/40 rounded-lg shadow-xl max-w-md w-full p-8 text-center glass-card">
         <h1 className="text-8xl font-extrabold text-primary mb-4">
           404
         </h1>
-        <div className="bg-black text-white px-3 py-1 text-sm rounded rotate-12 inline-block mb-6">
+        <div className="bg-primary/20 text-primary px-3 py-1 text-sm rounded rotate-12 inline-block mb-6">
           Page Not Found
         </div>
-        <p className="text-gray-600 dark:text-gray-300 mb-8">
+        <p className="text-muted-foreground mb-8">
           The page you're looking for doesn't exist or has been moved.
         </p>
         <Button asChild size="lg" className="w-full">
