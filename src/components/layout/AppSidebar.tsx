@@ -124,7 +124,7 @@ export function AppSidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden bg-primary/10"
+        className="fixed top-4 left-4 z-50 md:hidden"
         onClick={toggleSidebar}
       >
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
@@ -141,17 +141,17 @@ export function AppSidebar() {
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed md:sticky md:top-0 md:left-0 z-40 h-screen bg-sidebar border-r border-border/40 transition-all duration-300 ease-in-out",
+          "fixed md:sticky md:top-0 md:left-0 z-40 h-screen bg-card border-r transition-all duration-300 ease-in-out",
           collapsed ? "w-16" : "w-64",
           isMobile ? (sidebarOpen ? "left-0" : "-left-full") : "left-0"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between p-4 border-b border-border/40">
+          <div className="flex items-center justify-between p-4 border-b">
             {!collapsed && (
               <NavLink to="/dashboard" className="flex items-center">
-                <span className="text-xl font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Nextra</span>
+                <span className="text-xl font-serif font-bold text-primary">Nextra</span>
               </NavLink>
             )}
             
@@ -180,10 +180,9 @@ export function AppSidebar() {
                     <NavLink
                       to={item.href}
                       className={({ isActive }) => cn(
-                        "flex items-center p-2 rounded-lg hover:bg-sidebar-accent group transition-all",
-                        isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "text-sidebar-foreground/70",
-                        collapsed ? "justify-center" : "justify-start",
-                        "glow"
+                        "flex items-center p-2 rounded-lg hover:bg-accent group transition-all",
+                        isActive ? "bg-accent text-foreground font-medium" : "text-muted-foreground",
+                        collapsed ? "justify-center" : "justify-start"
                       )}
                       onClick={() => isMobile && setSidebarOpen(false)}
                     >
@@ -201,10 +200,10 @@ export function AppSidebar() {
           </div>
 
           {/* New document button */}
-          <div className="p-4 border-t border-border/40">
+          <div className="p-4 border-t">
             <Button 
               className={cn(
-                "w-full bg-primary/90 hover:bg-primary",
+                "w-full",
                 collapsed && "px-0"
               )}
               onClick={handleNewDocument}
@@ -215,18 +214,18 @@ export function AppSidebar() {
           </div>
 
           {/* User profile and logout */}
-          <div className="p-4 border-t border-border/40">
+          <div className="p-4 border-t">
             <div className={cn("flex", collapsed ? "justify-center" : "justify-between items-center")}>
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary-foreground">
+                  <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white">
                     <User size={18} />
                   </div>
                 </div>
                 {!collapsed && (
                   <div className="ml-3">
                     <p className="text-sm font-medium">CS Student</p>
-                    <p className="text-xs text-sidebar-foreground/70">Final Year</p>
+                    <p className="text-xs text-muted-foreground">Final Year</p>
                   </div>
                 )}
               </div>
@@ -237,7 +236,6 @@ export function AppSidebar() {
                   size="icon"
                   onClick={handleLogout}
                   title="Log out"
-                  className="hover:bg-destructive/10 hover:text-destructive"
                 >
                   <LogOut size={18} />
                 </Button>
@@ -249,7 +247,7 @@ export function AppSidebar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="mx-auto mt-4 hover:bg-destructive/10 hover:text-destructive"
+                className="mx-auto mt-4"
                 onClick={handleLogout}
                 title="Log out"
               >

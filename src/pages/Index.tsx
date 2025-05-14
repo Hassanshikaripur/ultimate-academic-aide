@@ -27,9 +27,9 @@ const Index = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">My Documents</h1>
+        <h1 className="text-3xl font-bold">My Documents</h1>
         
-        <Card className="glass-card">
+        <Card>
           <CardContent className="p-5">
             <DocumentGrid isAuthenticated={isAuthenticated} isLoading={isLoading} />
           </CardContent>
