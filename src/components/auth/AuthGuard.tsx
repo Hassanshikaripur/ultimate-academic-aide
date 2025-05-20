@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -8,18 +8,12 @@ export const AuthGuard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
-  const shouldShowToast = useRef(false);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        const isAuth = !!session;
-        setIsAuthenticated(isAuth);
-        
-        if (!isAuth) {
-          shouldShowToast.current = true;
-        }
+        setIsAuthenticated(!!session);
       } catch (error) {
         console.error("Auth error:", error);
       } finally {
@@ -42,18 +36,6 @@ export const AuthGuard = () => {
     };
   }, []);
 
-  // Show toast only after render when needed
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated && shouldShowToast.current) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to access this page",
-        variant: "destructive",
-      });
-      shouldShowToast.current = false;
-    }
-  }, [isLoading, isAuthenticated, toast]);
-
   if (isLoading) {
     return (
       <div className="h-screen w-full flex justify-center items-center">
@@ -63,6 +45,11 @@ export const AuthGuard = () => {
   }
 
   if (!isAuthenticated) {
+    toast({
+      title: "Authentication Required",
+      description: "Please sign in to access this page",
+      variant: "destructive",
+    });
     return <Navigate to="/" replace />;
   }
 

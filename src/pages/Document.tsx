@@ -1,11 +1,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import AppSidebar from "@/components/layout/AppSidebar";
 import { DocumentEditor } from "@/components/document/DocumentEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 
 const Document = () => {
   const { id } = useParams<{ id: string }>();
@@ -162,17 +162,20 @@ const Document = () => {
   };
 
   return (
-    <DashboardLayout>
-      {loading ? (
-        <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading document...</p>
-          </div>
-        </div>
-      ) : (
-        <Card className="border-0 shadow-none">
-          <CardContent className="p-0">
+    <div className="min-h-screen flex bg-background">
+      <AppSidebar />
+      
+      <div className="flex-1 ml-0 md:ml-64">
+        <CustomAppHeader />
+        <main className="w-full">
+          {loading ? (
+            <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading document...</p>
+              </div>
+            </div>
+          ) : (
             <DocumentEditor 
               initialTitle={documentData?.title || "Untitled Document"} 
               initialContent={documentData?.content || ""} 
@@ -180,10 +183,10 @@ const Document = () => {
               onSaveInsight={handleSaveInsight}
               documentId={id}
             />
-          </CardContent>
-        </Card>
-      )}
-    </DashboardLayout>
+          )}
+        </main>
+      </div>
+    </div>
   );
 };
 

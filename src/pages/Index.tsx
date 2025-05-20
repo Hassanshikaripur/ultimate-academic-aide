@@ -1,41 +1,20 @@
 
 import { DocumentGrid } from "@/components/dashboard/DocumentGrid";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+import AppSidebar from "@/components/layout/AppSidebar";
+import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
 
 const Index = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data } = await supabase.auth.getUser();
-        setIsAuthenticated(!!data.user);
-      } catch (error) {
-        console.error("Error checking auth:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkAuth();
-  }, []);
-  
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">My Documents</h1>
-        
-        <Card>
-          <CardContent className="p-5">
-            <DocumentGrid isAuthenticated={isAuthenticated} isLoading={isLoading} />
-          </CardContent>
-        </Card>
+    <div className="min-h-screen flex bg-background">
+      <AppSidebar />
+      
+      <div className="flex-1 ml-0 md:ml-64">
+        <CustomAppHeader />
+        <main className="container mx-auto py-6 px-4">
+          <DocumentGrid />
+        </main>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

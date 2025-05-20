@@ -74,27 +74,6 @@ export type Database = {
           },
         ]
       }
-      mohiddin: {
-        Row: {
-          class: string | null
-          created_at: string
-          id: number
-          name: string | null
-        }
-        Insert: {
-          class?: string | null
-          created_at?: string
-          id?: number
-          name?: string | null
-        }
-        Update: {
-          class?: string | null
-          created_at?: string
-          id?: number
-          name?: string | null
-        }
-        Relationships: []
-      }
       paper_notes: {
         Row: {
           created_at: string

@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Folder, File, FileText, Plus, Clock, Trash, Edit, Book, FilePlus } from "lucide-react";
-import { formatDocumentContent } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -25,22 +24,26 @@ interface Document {
   updated_at: string;
 }
 
-interface DocumentGridProps {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-}
-
-export function DocumentGrid({ isAuthenticated, isLoading }: DocumentGridProps) {
+export function DocumentGrid() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+      return !!user;
+    }
+
     async function fetchDocuments() {
-      if (!isAuthenticated) {
+      const authenticated = await checkAuth();
+      
+      if (!authenticated) {
         setLoading(false);
         return;
       }
@@ -68,11 +71,8 @@ export function DocumentGrid({ isAuthenticated, isLoading }: DocumentGridProps) 
       }
     }
 
-    // Only fetch documents once we know the authentication state
-    if (!isLoading) {
-      fetchDocuments();
-    }
-  }, [toast, isAuthenticated, isLoading]);
+    fetchDocuments();
+  }, [toast]);
 
   async function handleCreateDocument() {
     if (!isAuthenticated) {
@@ -122,13 +122,8 @@ export function DocumentGrid({ isAuthenticated, isLoading }: DocumentGridProps) 
   }
 
   function truncateText(text: string, maxLength = 100) {
-    if (!text) return "No content yet";
-    
-    // Format the document content first
-    const formattedText = formatDocumentContent(text);
-    
-    if (formattedText.length <= maxLength) return formattedText;
-    return formattedText.substring(0, maxLength) + '...';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   }
 
   const handleDeleteClick = (e: React.MouseEvent, id: string) => {
@@ -167,8 +162,7 @@ export function DocumentGrid({ isAuthenticated, isLoading }: DocumentGridProps) 
     }
   };
 
-  // Show loading state while determining authentication
-  if (isLoading || loading) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-12rem)]">
         <div className="text-center">
@@ -179,7 +173,6 @@ export function DocumentGrid({ isAuthenticated, isLoading }: DocumentGridProps) 
     );
   }
 
-  // Show sign in prompt if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-center justify-center space-y-4 py-12">
@@ -198,7 +191,6 @@ export function DocumentGrid({ isAuthenticated, isLoading }: DocumentGridProps) 
     );
   }
 
-  // Show documents or empty state
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -230,7 +222,7 @@ export function DocumentGrid({ isAuthenticated, isLoading }: DocumentGridProps) 
             <Link key={doc.id} to={`/document/${doc.id}`} className="block group">
               <Card className="h-full overflow-hidden hover:border-primary transition-colors">
                 <CardHeader className="pb-2">
-                  <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors flex items-center justify-between">{doc.title || "Untitled Document"}{<File className="inline-block mb-2" />}</CardTitle>
+                  <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors flex items-center justify-between">{doc.title}{<File className="inline-block mb-2" />}</CardTitle>
                   <CardDescription className="flex items-center gap-1 text-xs">
                     <Clock size={12} />
                     Updated {formatDate(doc.updated_at)}
@@ -238,7 +230,7 @@ export function DocumentGrid({ isAuthenticated, isLoading }: DocumentGridProps) 
                 </CardHeader>
                 <CardContent className="pb-2">
                   <p className="text-sm text-muted-foreground line-clamp-3">
-                    {truncateText(doc.content, 150)}
+                    {doc.content ? truncateText(doc.content, 150) : "No content yet"}
                   </p>
                 </CardContent>
                 <CardFooter>

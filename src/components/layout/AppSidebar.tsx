@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from "react";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   File,
   Search,
@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useSidebar } from "@/components/ui/sidebar";
 
 type NavigationItem = {
   name: string;
@@ -35,29 +34,18 @@ const navigation: NavigationItem[] = [
 ];
 
 export function AppSidebar() {
-  const { state, setOpen } = useSidebar();
-  const collapsed = state === "collapsed";
+  const [collapsed, setCollapsed] = useState(false);
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
-  useEffect(() => {
-    if (!isMobile) {
-      setOpen(state === "expanded");
-    }
-  }, [state, isMobile, setOpen]);
-  
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
     if (isMobile) {
       document.body.style.overflow = !sidebarOpen ? "hidden" : "auto";
     }
-  };
-
-  const toggleCollapsed = () => {
-    setOpen(!collapsed);
   };
 
   const handleLogout = async () => {
@@ -135,24 +123,24 @@ export function AppSidebar() {
         <div 
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
           onClick={toggleSidebar}
-        />
+        ></div>
       )}
 
       {/* Sidebar */}
-      <aside 
+      <div 
         className={cn(
-          "fixed md:sticky md:top-0 md:left-0 z-40 h-screen bg-card border-r transition-all duration-300 ease-in-out",
+          "fixed top-0 left-0 z-40 h-full bg-card border-r transition-all duration-300 ease-in-out",
           collapsed ? "w-16" : "w-64",
-          isMobile ? (sidebarOpen ? "left-0" : "-left-full") : "left-0"
+          isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between p-4 border-b">
             {!collapsed && (
-              <NavLink to="/dashboard" className="flex items-center">
-                <span className="text-xl font-serif font-bold text-primary">Nextra</span>
-              </NavLink>
+              <Link to="/dashboard" className="flex items-center">
+                <span className="text-xl font-serif font-bold text-primary">Nexora</span>
+              </Link>
             )}
             
             <Button
@@ -162,14 +150,14 @@ export function AppSidebar() {
                 "hidden md:flex",
                 collapsed && "mx-auto"
               )}
-              onClick={toggleCollapsed}
+              onClick={() => setCollapsed(!collapsed)}
             >
               {collapsed ? <Menu size={20} /> : <X size={20} />}
             </Button>
           </div>
 
           {/* Nav links */}
-          <div className="flex-grow overflow-y-auto py-4 no-scrollbar">
+          <div className="flex-grow overflow-y-auto py-4">
             <ul className="space-y-2 px-2">
               {navigation.map((item) => {
                 const isActive = location.pathname === item.href || 
@@ -177,22 +165,27 @@ export function AppSidebar() {
                   
                 return (
                   <li key={item.name}>
-                    <NavLink
+                    <Link
                       to={item.href}
-                      className={({ isActive }) => cn(
+                      className={cn(
                         "flex items-center p-2 rounded-lg hover:bg-accent group transition-all",
-                        isActive ? "bg-accent text-foreground font-medium" : "text-muted-foreground",
+                        isActive && "bg-accent",
                         collapsed ? "justify-center" : "justify-start"
                       )}
-                      onClick={() => isMobile && setSidebarOpen(false)}
                     >
-                      <item.icon size={20} className="flex-shrink-0" />
+                      <item.icon size={20} className={cn(
+                        "text-muted-foreground",
+                        isActive && "text-foreground"
+                      )} />
                       {!collapsed && (
-                        <span className="ml-3 text-sm">
+                        <span className={cn(
+                          "ml-3 text-sm font-medium",
+                          isActive && "font-semibold"
+                        )}>
                           {item.name}
                         </span>
                       )}
-                    </NavLink>
+                    </Link>
                   </li>
                 );
               })}
@@ -218,7 +211,7 @@ export function AppSidebar() {
             <div className={cn("flex", collapsed ? "justify-center" : "justify-between items-center")}>
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white">
+                  <div className="w-9 h-9 rounded-full bg-research-600 flex items-center justify-center text-white">
                     <User size={18} />
                   </div>
                 </div>
@@ -256,7 +249,7 @@ export function AppSidebar() {
             )}
           </div>
         </div>
-      </aside>
+      </div>
     </>
   );
 }

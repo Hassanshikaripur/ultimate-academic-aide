@@ -1,21 +1,20 @@
 
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { CustomAppHeader } from "@/components/layout/CustomAppHeader";
+import AppSidebar from "@/components/layout/AppSidebar";
 import { CitationManager } from "@/components/citations/CitationManager";
-import { Card, CardContent } from "@/components/ui/card";
 
 const Citations = () => {
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Citations</h1>
-        
-        <Card>
-          <CardContent className="p-5">
-            <CitationManager />
-          </CardContent>
-        </Card>
+    <div className="min-h-screen flex bg-background">
+      <AppSidebar />
+      
+      <div className="flex-1 ml-0 md:ml-64">
+        <CustomAppHeader />
+        <main className="container mx-auto py-6 px-4">
+          <CitationManager />
+        </main>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
