@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { DocumentGridSkeleton } from "./DocumentGridSkeleton";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Folder, File, FileText, Plus, Clock, Trash, Edit, Book, FilePlus } from "lucide-react";
 import {
@@ -163,14 +164,7 @@ export function DocumentGrid() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[calc(100vh-12rem)]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading documents...</p>
-        </div>
-      </div>
-    );
+    return <DocumentGridSkeleton />;
   }
 
   if (!isAuthenticated) {
