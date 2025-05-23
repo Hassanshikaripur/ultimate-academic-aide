@@ -10,7 +10,7 @@ const LandingPage = () => {
       {/* Particles Background */}
       <div
         className="fixed inset-0 z-0"
-        style={{ width: "100%", height: "100vh",  pointerEvents: "none" }}
+        style={{ width: "100%", height: "100vh", pointerEvents: "none" }}
       >
         <Particles
           particleColors={["#ffffff", "#ffffff"]}
@@ -29,9 +29,7 @@ const LandingPage = () => {
         <nav className="flex items-center justify-between py-6">
           <div className="flex items-center gap-2">
             <img className="h-10 w-10" src="/logo.png" alt="logo" />
-            <span className="text-4xl font-bold text-primary">
-              Nextra
-            </span>
+            <span className="text-4xl font-bold text-primary">Nexora</span>
           </div>
           <div className="flex space-x-4">
             <AuthDialog trigger={<Button variant="outline">Login</Button>} />
@@ -42,11 +40,13 @@ const LandingPage = () => {
         <div className="py-24 md:py-32 flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 space-y-6 mb-10 md:mb-0 md:pr-8">
             <h1 className="text-4xl md:text-6xl font-serif font-bold leading-tight text-white">
-            Research smarter, <br/>{" "}
+              Research smarter, <br />{" "}
               <span className="text-primary">Not Harder</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground">
-            <span className="text-secondary font-bold" >Nextra</span> an AI-powered research assistant that helps college students find, analyze, and cite sources in seconds.
+              <span className="text-secondary font-bold">Nexora</span> an
+              AI-powered research assistant that helps college students find,
+              analyze, and cite sources in seconds.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <AuthDialog
@@ -83,8 +83,8 @@ const LandingPage = () => {
               Powerful Features for Researchers
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Nextra streamlines your research workflow with intelligent
-              tools designed for academic excellence.
+              Nexora streamlines your research workflow with intelligent tools
+              designed for academic excellence.
             </p>
           </div>
 
@@ -162,7 +162,7 @@ const LandingPage = () => {
         <div className="border-t border-slate-800 mt-12 py-6 text-center text-slate-500">
           <p>
             &copy; {new Date().getFullYear()}{" "}
-            <span className="text-blue-600">Nextra</span>. All rights reserved.
+            <span className="text-blue-600">Nexora</span>. All rights reserved.
           </p>
         </div>
       </footer>

@@ -165,7 +165,7 @@ const Document = () => {
     <div className="min-h-screen flex bg-background">
       <AppSidebar />
       
-      <div className="flex-1 ml-0 md:ml-64">
+      <div className="flex-1 ml-0">
         <CustomAppHeader />
         <main className="w-full">
           {loading ? (

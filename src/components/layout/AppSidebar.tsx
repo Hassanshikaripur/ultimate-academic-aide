@@ -127,16 +127,16 @@ export function AppSidebar() {
       )}
 
       {/* Sidebar */}
-      <div 
+      <aside 
         className={cn(
-          "fixed top-0 left-0 z-40 h-full bg-card border-r transition-all duration-300 ease-in-out",
-          collapsed ? "w-16" : "w-64",
-          isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"
+          "fixed md:sticky top-0 left-0 z-40 h-screen bg-card/80 backdrop-blur-sm border-r transition-all duration-300 ease-in-out",
+          collapsed ? "w-20" : "w-64",
+          isMobile ? (sidebarOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center justify-between p-3 border-b">
             {!collapsed && (
               <Link to="/dashboard" className="flex items-center">
                 <span className="text-xl font-serif font-bold text-primary">Nexora</span>
@@ -249,7 +249,7 @@ export function AppSidebar() {
             )}
           </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 }
