@@ -23,6 +23,11 @@ import { useToast } from "@/hooks/use-toast";
 import { generateAIContent, createInsightFromAI, AIPromptType } from "@/utils/geminiAI";
 import { supabase } from "@/integrations/supabase/client";
 import { RichTextEditor } from "./RichTextEditor";
+import { useNavigate } from "react-router-dom";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { saveAs } from 'file-saver';
 
 interface DocumentEditorProps {
   initialTitle: string;
@@ -51,6 +56,7 @@ export function DocumentEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [aiGeneratedContent, setAiGeneratedContent] = useState<string>("");
   const { toast } = useToast();
+  const navigate  = useNavigate()
 
   // Load saved insights if there's a document ID
   useEffect(() => {
@@ -111,7 +117,7 @@ export function DocumentEditor({
     setIsAnalyzing(true);
     toast({
       title: "AI Analysis started",
-      description: `Gemini AI is now ${promptType}ing your document. Results will appear in the insights panel.`,
+      description: `AI is now ${promptType}ing your document. Results will appear in the insights panel.`,
     });
 
     try {
@@ -248,10 +254,207 @@ export function DocumentEditor({
     }
   };
 
+  const handleExportPDF = async () => {
+    try {
+      toast({
+        title: "Exporting PDF",
+        description: "Your document is being exported as PDF...",
+      });
+
+      // Create a temporary container with proper styling
+      const tempContainer = document.createElement('div');
+      tempContainer.style.cssText = `
+        position: fixed;
+        top: -9999px;
+        left: -9999px;
+        width: 794px; // A4 width in pixels at 96 DPI
+        padding: 40px;
+        background: white;
+        font-family: system-ui, -apple-system, sans-serif;
+      `;
+
+      // Add title and content
+      tempContainer.innerHTML = `
+        <h1 style="font-size: 24px; margin-bottom: 20px; font-weight: bold;">${documentTitle}</h1>
+        <div class="document-content">${content}</div>
+      `;
+      document.body.appendChild(tempContainer);
+
+      try {
+        // Generate canvas with better settings
+        const canvas = await html2canvas(tempContainer, {
+          scale: 2, // Higher quality
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          windowWidth: tempContainer.scrollWidth,
+          windowHeight: tempContainer.scrollHeight,
+          logging: false,
+        });
+
+        // Create PDF with proper dimensions (A4)
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+          compress: true,
+        });
+
+        // Calculate dimensions
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // Add the image to PDF with proper scaling
+        let heightLeft = imgHeight;
+        let position = 0;
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+        // First page
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // Add new pages if content exceeds page height
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight; // Top of next page
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        // Generate clean filename
+        const filename = documentTitle
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') || 'document';
+
+        // Save the PDF
+        pdf.save(`${filename}.pdf`);
+
+        toast({
+          title: "Export complete",
+          description: "Document has been exported as PDF successfully",
+        });
+      } finally {
+        // Clean up: remove temporary container
+        if (tempContainer.parentNode) {
+          tempContainer.parentNode.removeChild(tempContainer);
+        }
+      }
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast({
+        title: "Export failed",
+        description: "Failed to export document as PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportWord = async () => {
+    try {
+      toast({
+        title: "Exporting Word",
+        description: "Your document is being exported as Word document...",
+      });
+      
+      // Create a new Word document
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: documentTitle,
+                  bold: true,
+                  size: 32,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: content.replace(/<[^>]+>/g, ''), // Remove HTML tags
+                }),
+              ],
+            }),
+          ],
+        }],
+      });
+
+      // Generate and save the document
+      const buffer = await Packer.toBlob(doc);
+      saveAs(buffer, `${documentTitle.toLowerCase().replace(/\s+/g, '-')}.docx`);
+      
+      toast({
+        title: "Export complete",
+        description: "Document has been exported as Word document",
+      });
+    } catch (error) {
+      console.error("Error exporting Word:", error);
+      toast({
+        title: "Export failed",
+        description: "Failed to export document as Word",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShareDocument = async () => {
+    try {
+      // Generate a shareable link
+      const shareableLink = `${window.location.origin}/document/${documentId}`;
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shareableLink);
+      
+      toast({
+        title: "Link copied",
+        description: `Shareable link has been copied to clipboard ${shareableLink} `,
+      });
+    } catch (error) {
+      console.error("Error sharing document:", error);
+      toast({
+        title: "Share failed",
+        description: "Failed to generate shareable link",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!documentId) return;
+    
+    try {
+      const { error } = await supabase
+        .from("documents")
+        .delete()
+        .eq("id", documentId);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Document deleted",
+        description: "Your document has been permanently deleted",
+      });
+      
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete document",
+        variant: "destructive",
+      });
+    }
+  };  
+
   return (
     <div className="relative min-h-[calc(100vh-4rem)]">
       <div className="border-b bg-background sticky top-16 z-20">
-        <div className="flex flex-col gap-1 px-4 py-3">
+        <div className="flex gap-1 px-14 py-3">
           <input
             type="text"
             value={documentTitle}
@@ -275,7 +478,7 @@ export function DocumentEditor({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Gemini AI Tools</DropdownMenuLabel>
+                  <DropdownMenuLabel>What do you want to do?</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => handleAIAnalyze('analyze')}>
                     Analyze Content
@@ -313,27 +516,30 @@ export function DocumentEditor({
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button variant="outline" size="icon" className="h-9 w-9">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Document Options</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPDF}>
                     <FileDown className="h-4 w-4 mr-2" />
                     Export as PDF
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportWord}>
                     <Download className="h-4 w-4 mr-2" />
                     Export as Word
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShareDocument}>
                     <Share2 className="h-4 w-4 mr-2" />
                     Share Document
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive">
+                  <DropdownMenuItem 
+                    className="text-destructive"
+                    onClick={handleDeleteDocument}
+                  >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Document
                   </DropdownMenuItem>
@@ -344,7 +550,7 @@ export function DocumentEditor({
         </div>
       </div>
       
-      <div className="px-4 py-6 md:px-12 md:py-8 lg:px-20 lg:py-10 md:mr-80">
+      <div className="px-4 py-6 w-full md:px-12 md:py-8 lg:px-20 lg:py-10 md:mr-80">
         <RichTextEditor 
           initialValue={content}
           onSave={handleContentChange}

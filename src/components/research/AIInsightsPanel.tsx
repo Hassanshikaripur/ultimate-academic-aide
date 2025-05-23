@@ -26,7 +26,7 @@ export function AIInsightsPanel({
   onClearInsights,
   onApplyInsight
 }: AIInsightsPanelProps) {
-  const [isPanelOpen, setIsPanelOpen] = useState(true);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [activeInsight, setActiveInsight] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
@@ -233,11 +233,11 @@ export function AIInsightsPanel({
       ) : (
         <Button
           variant="ghost"
-          className="h-full w-full rounded-none flex flex-col gap-1"
+          className="h-full w-full rounded-none flex flex-col gap-5"
           onClick={togglePanel}
         >
-          <Zap size={18} />
-          <span className="text-xs rotate-90">Insights</span>
+          <Zap size={24} />
+          <span className="text-md rotate-90">Insights</span>
         </Button>
       )}
     </div>
