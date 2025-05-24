@@ -224,7 +224,7 @@ export function DocumentGrid() {
                 </CardHeader>
                 <CardContent className="pb-2">
                   <p className="text-sm text-muted-foreground line-clamp-3">
-                    {doc.content ? truncateText(doc.content, 150) : "No content yet"}
+                    {doc.content ? truncateText(doc.content.replace(/<[^>]*>/g, ''), 150) : "No content yet"}
                   </p>
                 </CardContent>
                 <CardFooter>

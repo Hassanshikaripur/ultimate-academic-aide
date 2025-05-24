@@ -31,34 +31,36 @@ export function RichTextEditor({
     if (applyAIContent && aiContent && aiContent !== previousAiContent) {
       const quill = quillRef.current?.getEditor();
       if (quill) {
-        // Get current selection or use the end of the document
         const range = quill.getSelection() || { index: quill.getText().length, length: 0 };
         
-        // Process the aiContent to properly format it and handle any HTML tags
+        // Process the aiContent to properly format it
         const processedContent = aiContent
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/\n/g, "<br />");
+          // Remove any "AI Generated" prefix
+          .replace(/^AI Generated\s*\n+/, '')
+          .replace(/^Brainstormed Ideas\s*\n+/, '')
+          // Convert HTML-style strong tags to proper formatting
+          .replace(/<strong>(.*?)<\/strong>/g, '$1')
+          // Format headers with proper Quill formatting
+          .replace(/\*\*(.*?):\*\*/g, '<h2>$1</h2>')
+          // Format bullet points
+          .replace(/\* /g, '• ')
+          // Handle nested bullet points
+          .replace(/  \* /g, '  ◦ ')
+          // Convert newlines to proper spacing
+          .replace(/\n\n+/g, '</p><p>')
+          .replace(/\n/g, '<br>');
         
-        // Format AI content with some styling
+        // Wrap the content in a styled block
         const formattedContent = `
           <div class="ai-content-block">
-            <div class="ai-content-header">
-              <span class="ai-label">AI Generated</span>
-            </div>
             <div class="ai-content-body">
-              ${processedContent}
+              <p>${processedContent}</p>
             </div>
           </div>
         `;
         
-        // Insert formatted content
         quill.clipboard.dangerouslyPasteHTML(range.index, formattedContent);
-        
-        // Update state to track that we've processed this content
         setPreviousAiContent(aiContent);
-        
-        // Focus back on editor
         quill.focus();
       }
     }
@@ -96,8 +98,8 @@ export function RichTextEditor({
   ];
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4 bg-card p-2 rounded-md shadow-sm">
+    <div className="flex flex-col">
+      <div className="flex items-center justify-end bg-card p-2 -mt-10 gap-2 rounded-md shadow-sm">
         <Button 
           variant="outline" 
           size="sm" 
@@ -159,6 +161,9 @@ export function RichTextEditor({
             background-color: #f8f9fa;
             border-color: #e5e7eb;
             padding: 10px;
+            position: fixed;
+            top: 136px;
+            z-index: 1000;
           }
           .ql-container {
             border-bottom-left-radius: 6px;
