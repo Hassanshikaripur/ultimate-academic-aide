@@ -66,7 +66,7 @@ const LandingPage = () => {
               <div className="relative bg-black/20 backdrop-blur-lg p-4 rounded-2xl shadow-xl border border-white/20">
                 <img
                   src="https://images.pexels.com/photos/1326947/pexels-photo-1326947.jpeg"
-                  alt="ScholarScribe Dashboard Preview"
+                  alt="Nexora Dashboard Preview"
                   className="rounded-lg border border-white/30 shadow-sm"
                 />
               </div>

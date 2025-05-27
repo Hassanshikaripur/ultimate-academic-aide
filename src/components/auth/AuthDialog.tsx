@@ -126,7 +126,7 @@ export function AuthDialog({ children, trigger, defaultTab = "signin" }: AuthDia
       )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Welcome to ScholarScribe</DialogTitle>
+          <DialogTitle>Welcome to Nexora</DialogTitle>
           <DialogDescription>Sign in or create an account to access your research workspace</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue={activeTab} value={activeTab} onValueChange={(v) => setActiveTab(v as "signin" | "signup")} className="w-full">

@@ -29,7 +29,7 @@ const navigation: NavigationItem[] = [
   { name: "Documents", href: "/dashboard", icon: File },
   { name: "Research", href: "/research", icon: Search },
   { name: "Citations", href: "/citations", icon: Database },
-  { name: "Settings", href: "/settings", icon: Settings },
+  // { name: "Settings", href: "/settings", icon: Settings },
   { name: "Share", href: "/share", icon: Share },
 ];
 
